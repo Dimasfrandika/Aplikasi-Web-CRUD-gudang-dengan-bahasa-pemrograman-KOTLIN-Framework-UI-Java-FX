@@ -1,0 +1,128 @@
+/* ================= GLOBAL ================= */
+.root {
+    -fx-font-family: "Segoe UI", "Inter", Arial;
+    -fx-background-color: linear-gradient(to bottom, #f8fafc, #eef2ff);
+}
+
+/* ================= HEADER ================= */
+.header {
+    -fx-background-color: linear-gradient(
+            to right,
+            #7c3aed,
+            #2563eb
+    );
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 18, 0, 0, 4);
+}
+
+.header-title {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+
+.user-label {
+    -fx-text-fill: rgba(255,255,255,0.85);
+    -fx-font-size: 12px;
+}
+
+/* ================= CARD ================= */
+.card {
+    -fx-background-color: white;
+    -fx-padding: 18;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-effect: dropshadow(gaussian, rgba(37,99,235,0.15), 20, 0, 0, 6);
+}
+
+.section-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1e293b;
+}
+
+/* ================= TABLE ================= */
+.table-view {
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: linear-gradient(
+            to bottom,
+            #e0e7ff,
+            #c7d2fe
+    );
+}
+
+.table-view .column-header {
+    -fx-font-weight: bold;
+    -fx-text-fill: #1e3a8a;
+}
+
+.table-row-cell:selected {
+    -fx-background-color: linear-gradient(
+            to right,
+            #2563eb,
+            #7c3aed
+    );
+}
+
+.table-row-cell:selected .text {
+    -fx-fill: white;
+}
+
+/* ================= INPUT ================= */
+.text-field {
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: #c7d2fe;
+    -fx-padding: 8;
+}
+
+.text-field:focused {
+    -fx-border-color: #2563eb;
+    -fx-effect: dropshadow(gaussian, rgba(37,99,235,0.35), 8, 0, 0, 0);
+}
+
+/* ================= BUTTON ================= */
+.button {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 18;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+}
+
+/* PRIMARY */
+.btn-primary {
+    -fx-background-color: linear-gradient(to right, #2563eb, #1d4ed8);
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(gaussian, rgba(37,99,235,0.45), 10, 0, 0, 4);
+}
+
+/* WARNING */
+.btn-warning {
+    -fx-background-color: linear-gradient(to right, #f59e0b, #d97706);
+    -fx-text-fill: white;
+}
+
+/* DANGER */
+.btn-danger {
+    -fx-background-color: linear-gradient(to right, #ef4444, #b91c1c);
+    -fx-text-fill: white;
+}
+
+/* LOGOUT */
+.btn-outline {
+    -fx-background-color: transparent;
+    -fx-border-color: #ef4444;
+    -fx-text-fill: #ef4444;
+    -fx-border-radius: 10;
+}
+
+/* ================= FOOTER ================= */
+.footer {
+    -fx-background-color: transparent;
+    -fx-text-fill: #475569;
+    -fx-font-size: 12px;
+}

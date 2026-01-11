@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane stylesheets="@/css/barang.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.BarangController">
+
+    <!-- ================= HEADER ================= -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="12" styleClass="header">
+            <padding>
+                <Insets bottom="14" left="20" right="20" top="14" />
+            </padding>
+
+            <ImageView fitHeight="42" fitWidth="42" preserveRatio="true">
+                <image>
+                    <Image url="@/images/gambar.png" />
+                </image>
+            </ImageView>
+
+            <Label fx:id="lblUser" styleClass="user-label" />
+
+            <Region HBox.hgrow="ALWAYS" />
+
+            <Label prefHeight="23.0" prefWidth="291.0" styleClass="header-title" text="Manajemen Data Gudang" />
+
+            <Region HBox.hgrow="ALWAYS" />
+        </HBox>
+    </top>
+
+    <!-- ================= CONTENT ================= -->
+    <center>
+        <VBox spacing="20" styleClass="content">
+            <padding>
+                <Insets bottom="20" left="20" right="20" top="20" />
+            </padding>
+
+            <!-- TABLE CARD -->
+            <VBox spacing="10" styleClass="card">
+                <Label styleClass="section-title" text="Daftar Barang" />
+
+                <TableView fx:id="tableBarang" prefHeight="360">
+                    <columns>
+                        <TableColumn fx:id="colNo" prefWidth="60" text="No" />
+                        <TableColumn fx:id="colId" prefWidth="60" text="ID" />
+                        <TableColumn fx:id="colIdBarang" prefWidth="150" text="Kode Barang" />
+                        <TableColumn fx:id="colNama" prefWidth="220" text="Nama Barang" />
+                        <TableColumn fx:id="colStok" prefWidth="90" text="Stok" />
+                        <TableColumn fx:id="colSatuan" prefWidth="120" text="Satuan" />
+                    </columns>
+                </TableView>
+            </VBox>
+
+            <!-- FORM CARD -->
+            <VBox spacing="16" styleClass="card">
+                <Label styleClass="section-title" text="Form Barang" />
+
+                <GridPane hgap="12" vgap="12">
+                    <Label text="Kode Barang" />
+                    <TextField fx:id="txtIdBarang" GridPane.columnIndex="1" />
+
+                    <Label text="Nama Barang" GridPane.rowIndex="1" />
+                    <TextField fx:id="txtNamaBarang" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+
+                    <Label text="Stok" GridPane.rowIndex="2" />
+                    <TextField fx:id="txtStok" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+
+                    <Label text="Satuan" GridPane.rowIndex="3" />
+                    <TextField fx:id="txtSatuan" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+               <columnConstraints>
+                  <ColumnConstraints />
+                  <ColumnConstraints />
+               </columnConstraints>
+               <rowConstraints>
+                  <RowConstraints />
+                  <RowConstraints />
+                  <RowConstraints />
+                  <RowConstraints />
+               </rowConstraints>
+                </GridPane>
+
+                <HBox spacing="10">
+                    <HBox spacing="12">
+                        <Button text="Tambah"
+                                onAction="#handleTambah"
+                                styleClass="btn-primary"/>
+
+                        <Button text="Ubah"
+                                onAction="#handleUbah"
+                                styleClass="btn-warning"/>
+
+                        <Button text="Hapus"
+                                onAction="#handleHapus"
+                                styleClass="btn-danger"/>
+                    </HBox>
+
+                    <Region HBox.hgrow="ALWAYS" />
+                    <Button text="Logout"
+                            onAction="#handleLogout"
+                            styleClass="btn-outline"/>
+                </HBox>
+            </VBox>
+        </VBox>
+    </center>
+
+    <!-- ================= FOOTER ================= -->
+    <bottom>
+        <HBox alignment="CENTER" styleClass="footer">
+            <Label text="© 2026 Powered by Dimas Frandika" />
+        </HBox>
+    </bottom>
+
+</BorderPane>

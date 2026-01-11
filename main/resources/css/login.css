@@ -1,0 +1,55 @@
+.background {
+    -fx-background-color: linear-gradient(to bottom right, #f5f7fa, #e4e8f0);
+}
+
+.login-card {
+    -fx-background-color: white;
+    -fx-padding: 32;
+    -fx-background-radius: 14;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 18, 0.2, 0, 6);
+}
+
+.title {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+}
+
+.subtitle {
+    -fx-font-size: 13px;
+    -fx-text-fill: #6b7280;
+}
+
+.input {
+    -fx-pref-width: 340;
+    -fx-padding: 10;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: #c7d2fe;
+}
+
+.login-button {
+    -fx-pref-width: 340;
+    -fx-background-color: #2563eb;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 8;
+}
+
+.login-button:hover {
+    -fx-background-color: #1d4ed8;
+}
+
+.eye-button {
+    -fx-background-color: transparent;
+    -fx-font-size: 14px;
+}
+
+.footer-text {
+    -fx-font-size: 12px;
+    -fx-text-fill: #6b7280;
+}
+
+.register-link {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}

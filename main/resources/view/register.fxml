@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane prefHeight="493.0" prefWidth="612.0" stylesheets="@/css/register.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.RegisterController">
+
+    <VBox alignment="CENTER" layoutX="-88.0" layoutY="-83.0" prefHeight="516.0" prefWidth="626.0" spacing="15" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="-14.0" AnchorPane.topAnchor="0">
+
+        <VBox alignment="CENTER" maxWidth="413.0" prefHeight="500.0" prefWidth="413.0" spacing="10" styleClass="form-box">
+
+
+            <ImageView fitHeight="83.0" fitWidth="92.0" preserveRatio="true">
+                <image>
+                    <Image url="@/images/gambar.png" />
+                </image>
+            </ImageView>
+
+            <Label alignment="CENTER" prefHeight="35.0" prefWidth="270.0" styleClass="title-label" text="Register Akun" />
+
+            <Label styleClass="subtitle" text="Silakan Mendaftar Dengan Email" />
+
+            <Label contentDisplay="CENTER" prefHeight="26.0" prefWidth="337.0" text="E-mail" />
+
+            <!-- RegisterController -->
+            <TextField fx:id="emailField" prefWidth="337.0" promptText="example@gmail.com" />
+         <Label prefHeight="26.0" prefWidth="338.0" text="Pasword" />
+
+            <!-- PASSWORD + TOGGLE -->
+            <HBox alignment="CENTER" spacing="6">
+
+                <PasswordField fx:id="passwordField" prefHeight="40" prefWidth="325.0" promptText="Password" styleClass="input" />
+
+                <TextField fx:id="passwordTextField" managed="false" prefHeight="40" prefWidth="300" promptText="Password" styleClass="input" visible="false" />
+
+                <Button fx:id="togglePassword" onAction="#handleTogglePassword" prefHeight="34.0" prefWidth="34.0" styleClass="toggle-button" text="👁" />
+            </HBox>
+
+            <Button maxWidth="Infinity" onAction="#handleRegister" styleClass="primary-button" text="Daftar" />
+
+            <Hyperlink alignment="CENTER" contentDisplay="CENTER" onAction="#handleBackToLogin" text="Kembali ke Login" />
+
+        </VBox>
+    </VBox>
+</AnchorPane>
