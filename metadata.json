@@ -1,0 +1,8 @@
+{
+  "name": "Manajemen Data Gudang",
+  "description": "Aplikasi Web CRUD Gudang dengan manajemen data stok barang, autentikasi user, dan antarmuka responsif.",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
