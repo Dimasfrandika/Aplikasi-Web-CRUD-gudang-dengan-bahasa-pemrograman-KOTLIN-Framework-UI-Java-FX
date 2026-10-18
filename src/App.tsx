@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Barang,
   TransaksiBarangMasuk,
@@ -12,6 +12,7 @@ import {
   TransaksiKeluarRepository,
   syncAllFromBackend
 } from './services/storage';
+import { realtimeService, RealtimeStatus } from './services/realtime';
 import { LoginView } from './components/LoginView';
 import { RegisterView } from './components/RegisterView';
 import { MainLayout } from './components/MainLayout';
@@ -30,18 +31,24 @@ export function App() {
   const [barangList, setBarangList] = useState<Barang[]>([]);
   const [transaksiMasuk, setTransaksiMasuk] = useState<TransaksiBarangMasuk[]>([]);
   const [transaksiKeluar, setTransaksiKeluar] = useState<TransaksiBarangKeluar[]>([]);
+  const [realtimeStatus, setRealtimeStatus] = useState<RealtimeStatus>('connecting');
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
 
-  const reloadData = async () => {
-    // 1. Immediately read from cache for snappy UI
+  const isSyncingRef = useRef(false);
+
+  const reloadData = useCallback(async () => {
     const barangRepo = new BarangRepository();
     const masukRepo = new TransaksiMasukRepository();
     const keluarRepo = new TransaksiKeluarRepository();
 
+    // 1. Immediately read from cache for snappy UI
     setBarangList(barangRepo.getAll(true));
     setTransaksiMasuk(masukRepo.getAll());
     setTransaksiKeluar(keluarRepo.getAll());
 
     // 2. Fetch fresh data from Cloud SQL backend
+    if (isSyncingRef.current) return;
+    isSyncingRef.current = true;
     try {
       await syncAllFromBackend();
       setBarangList(barangRepo.getAll(true));
@@ -49,12 +56,21 @@ export function App() {
       setTransaksiKeluar(keluarRepo.getAll());
     } catch (e) {
       console.warn('Sync failed, using offline cache', e);
+    } finally {
+      isSyncingRef.current = false;
     }
+  }, []);
+
+  const handleForceSync = async () => {
+    setIsSyncing(true);
+    await reloadData();
+    setTimeout(() => {
+      setIsSyncing(false);
+    }, 400);
   };
 
   useEffect(() => {
-    // Pre-sync on app boot
-    syncAllFromBackend().catch(() => {});
+    // 1. Initial check & sync
     const currentSession = SessionService.getSession();
     if (currentSession.userId) {
       setSession(currentSession);
@@ -62,8 +78,25 @@ export function App() {
       reloadData();
     } else {
       setCurrentScene('login');
+      // Even if not logged in, sync master data & users
+      syncAllFromBackend().catch(() => {});
     }
-  }, []);
+
+    // 2. Real-time WebSocket connection status listener
+    const unsubStatus = realtimeService.onStatusChange((status) => {
+      setRealtimeStatus(status);
+    });
+
+    // 3. Real-time data change event listener (from any other browser / client)
+    const unsubEvent = realtimeService.subscribe((_event) => {
+      reloadData();
+    });
+
+    return () => {
+      unsubStatus();
+      unsubEvent();
+    };
+  }, [reloadData]);
 
   const handleLoginSuccess = () => {
     const freshSession = SessionService.getSession();
@@ -100,6 +133,9 @@ export function App() {
           barangList={barangList}
           transaksiMasuk={transaksiMasuk}
           transaksiKeluar={transaksiKeluar}
+          realtimeStatus={realtimeStatus}
+          isSyncing={isSyncing}
+          onForceSync={handleForceSync}
           onDataChanged={reloadData}
           onLogout={handleLogout}
         />

@@ -26,7 +26,7 @@ export async function syncAllFromBackend(): Promise<void> {
 
     if (barangRes.ok) {
       const data = await barangRes.json();
-      if (Array.isArray(data) && data.length > 0) {
+      if (Array.isArray(data)) {
         localStorage.setItem(STORAGE_KEY_BARANG, JSON.stringify(data));
       }
     }
@@ -47,14 +47,14 @@ export async function syncAllFromBackend(): Promise<void> {
 
     if (pengaturanRes.ok) {
       const data = await pengaturanRes.json();
-      if (data && data.namaKepalaBagian) {
+      if (data && (data.namaKepalaBagian || data.namaPerusahaan)) {
         localStorage.setItem(STORAGE_KEY_PENGATURAN, JSON.stringify(data));
       }
     }
 
     if (usersRes.ok) {
       const data = await usersRes.json();
-      if (Array.isArray(data) && data.length > 0) {
+      if (Array.isArray(data)) {
         localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(data));
       }
     }

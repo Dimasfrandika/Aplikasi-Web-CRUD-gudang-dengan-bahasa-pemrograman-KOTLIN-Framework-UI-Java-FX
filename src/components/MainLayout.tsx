@@ -11,14 +11,19 @@ import {
   FileText,
   LogOut,
   ShieldCheck,
-  UserCheck
+  UserCheck,
+  RefreshCw
 } from 'lucide-react';
+import { RealtimeStatus } from '../services/realtime';
 
 interface MainLayoutProps {
   session: UserSession;
   barangList: Barang[];
   transaksiMasuk: TransaksiBarangMasuk[];
   transaksiKeluar: TransaksiBarangKeluar[];
+  realtimeStatus?: RealtimeStatus;
+  isSyncing?: boolean;
+  onForceSync?: () => void;
   onDataChanged: () => void;
   onLogout: () => void;
 }
@@ -30,6 +35,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   barangList,
   transaksiMasuk,
   transaksiKeluar,
+  realtimeStatus = 'connected',
+  isSyncing = false,
+  onForceSync,
   onDataChanged,
   onLogout
 }) => {
@@ -56,7 +64,62 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
           </div>
         </div>
 
-        <div className="header-user-info">
+        <div className="header-user-info" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {/* Real-time Cloud SQL Sync Badge & Button */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: 'rgba(255, 255, 255, 0.12)',
+            padding: '5px 10px',
+            borderRadius: '6px',
+            border: '1px solid rgba(255, 255, 255, 0.2)'
+          }}>
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '5px',
+              fontSize: '11px',
+              fontWeight: 600,
+              color: realtimeStatus === 'connected' ? '#86efac' : realtimeStatus === 'connecting' ? '#fde047' : '#fca5a5'
+            }}>
+              <span style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                backgroundColor: realtimeStatus === 'connected' ? '#22c55e' : realtimeStatus === 'connecting' ? '#eab308' : '#ef4444',
+                boxShadow: realtimeStatus === 'connected' ? '0 0 8px #22c55e' : 'none'
+              }} />
+              {realtimeStatus === 'connected' ? 'Real-Time Aktif' : realtimeStatus === 'connecting' ? 'Menghubungkan...' : 'Offline'}
+            </span>
+
+            {onForceSync && (
+              <button
+                type="button"
+                onClick={onForceSync}
+                disabled={isSyncing}
+                title="Sinkronkan data sekarang dari Cloud SQL"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '4px',
+                  padding: '3px 8px',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  cursor: isSyncing ? 'not-allowed' : 'pointer',
+                  transition: 'background 0.2s'
+                }}
+              >
+                <RefreshCw size={11} className={isSyncing ? 'animate-spin' : ''} />
+                {isSyncing ? 'Sinkron...' : 'Sinkron'}
+              </button>
+            )}
+          </div>
+
           <div style={{ textAlign: 'right' }}>
             <div style={{ fontSize: '13px', fontWeight: 600, color: '#ffffff' }}>
               {session.nama || session.email}
@@ -104,7 +167,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
           className={`nav-tab-btn ${activeTab === 'master_barang' ? 'active' : ''}`}
           onClick={() => setActiveTab('master_barang')}
         >
-          <Package size={17} />
+          <Package size={17} color="#2563eb" />
           1. Data Master Barang
           <span style={{
             background: activeTab === 'master_barang' ? '#2563eb' : '#e2e8f0',
@@ -180,6 +243,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
           <BarangMasukView
             session={session}
             barangList={barangList}
+            transaksiList={transaksiMasuk}
             onDataChanged={onDataChanged}
           />
         )}
@@ -188,6 +252,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
           <BarangKeluarView
             session={session}
             barangList={barangList}
+            transaksiList={transaksiKeluar}
             onDataChanged={onDataChanged}
           />
         )}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Barang, TransaksiBarangKeluar, TransaksiItem, UserSession } from '../types';
 import { TransaksiKeluarRepository } from '../services/storage';
 import { AlertDialog } from './AlertDialog';
@@ -23,16 +23,26 @@ import {
 interface BarangKeluarViewProps {
   session: UserSession;
   barangList: Barang[];
+  transaksiList?: TransaksiBarangKeluar[];
   onDataChanged: () => void;
 }
 
 export const BarangKeluarView: React.FC<BarangKeluarViewProps> = ({
   session,
   barangList,
+  transaksiList: externalTransaksiList,
   onDataChanged
 }) => {
   const repository = new TransaksiKeluarRepository();
-  const [transaksiList, setTransaksiList] = useState<TransaksiBarangKeluar[]>(() => repository.getAll());
+  const [transaksiList, setTransaksiList] = useState<TransaksiBarangKeluar[]>(
+    () => externalTransaksiList || repository.getAll()
+  );
+
+  useEffect(() => {
+    if (externalTransaksiList) {
+      setTransaksiList(externalTransaksiList);
+    }
+  }, [externalTransaksiList]);
 
   // Form Fields
   const today = new Date().toISOString().split('T')[0];

@@ -1,4 +1,6 @@
 import express, { Request, Response } from 'express';
+import http from 'http';
+import { WebSocketServer, WebSocket } from 'ws';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
@@ -13,18 +15,107 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+const server = http.createServer(app);
 const PORT = parseInt(process.env.PORT || '3000', 10);
 
 app.use(express.json());
 
+// ==========================================
+// REAL-TIME WEBSOCKET INFRASTRUCTURE
+// ==========================================
+const wss = new WebSocketServer({
+  noServer: true,
+  handleProtocols: (protocols) => {
+    return Array.from(protocols)[0] || false;
+  }
+});
+const connectedClients = new Set<WebSocket>();
+
+wss.on('connection', (ws: WebSocket) => {
+  // If connection is from Vite's internal client, satisfy it cleanly
+  if (ws.protocol === 'vite-hmr') {
+    ws.send(JSON.stringify({ type: 'connected' }));
+    return;
+  }
+
+  connectedClients.add(ws);
+  ws.send(JSON.stringify({
+    type: 'CONNECTED',
+    message: 'Terhubung ke server pergudangan real-time',
+    clientsCount: connectedClients.size,
+    timestamp: Date.now()
+  }));
+
+  ws.on('message', (raw) => {
+    try {
+      const data = JSON.parse(raw.toString());
+      if (data.type === 'PING') {
+        ws.send(JSON.stringify({ type: 'PONG', timestamp: Date.now() }));
+      }
+    } catch {
+      // ignore invalid messages
+    }
+  });
+
+  ws.on('close', () => {
+    connectedClients.delete(ws);
+  });
+
+  ws.on('error', () => {
+    connectedClients.delete(ws);
+  });
+});
+
+// Intercept WebSocket upgrade requests: handles /api/ws and Vite HMR
+server.on('upgrade', (request, socket, head) => {
+  try {
+    const parsedUrl = new URL(request.url || '', `http://${request.headers.host || 'localhost'}`);
+    const isViteHmr = request.headers['sec-websocket-protocol'] === 'vite-hmr';
+
+    if (parsedUrl.pathname === '/api/ws' || parsedUrl.pathname === '/ws' || isViteHmr || parsedUrl.pathname === '/') {
+      wss.handleUpgrade(request, socket, head, (ws) => {
+        wss.emit('connection', ws, request);
+      });
+    } else {
+      socket.destroy();
+    }
+  } catch (e) {
+    console.error('WebSocket upgrade error:', e);
+  }
+});
+
+/**
+ * Broadcast real-time change event to all active browsers and tabs
+ */
+function broadcastChange(entity: string, action: string, data?: any) {
+  const payload = JSON.stringify({
+    type: 'DATA_CHANGED',
+    entity,
+    action,
+    data,
+    timestamp: Date.now()
+  });
+
+  for (const client of connectedClients) {
+    if (client.readyState === WebSocket.OPEN) {
+      try {
+        client.send(payload);
+      } catch (err) {
+        console.error('WS broadcast error:', err);
+      }
+    }
+  }
+}
+
 // API: Health & Status check
 app.get('/api/health', async (_req: Request, res: Response) => {
   try {
-    const userCount = await db.select().from(users).limit(1);
+    await db.select().from(users).limit(1);
     res.json({
       status: 'ok',
       database: 'PostgreSQL (Cloud SQL)',
       connected: true,
+      realtimeClients: connectedClients.size,
       timestamp: new Date().toISOString()
     });
   } catch (error: any) {
@@ -82,7 +173,7 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
 });
 
 app.post('/api/auth/register', async (req: Request, res: Response) => {
-  const { nama, email, password, role } = req.body;
+  const { nama, email, password } = req.body;
   if (!nama || !email || !password) {
     return res.status(400).json({ error: 'Semua kolom wajib diisi' });
   }
@@ -99,6 +190,9 @@ app.post('/api/auth/register', async (req: Request, res: Response) => {
       passwordHash: password,
       role: 'petugas'
     }).returning();
+
+    // Broadcast new user created to all clients
+    broadcastChange('users', 'create', inserted);
 
     return res.json({ success: true, user: inserted });
   } catch (error: any) {
@@ -141,6 +235,9 @@ app.post('/api/barang', async (req: Request, res: Response) => {
       keterangan: (keterangan || '').trim()
     }).returning();
 
+    // Broadcast change
+    broadcastChange('barang', 'create', inserted);
+
     return res.json({ success: true, data: inserted });
   } catch (error: any) {
     console.error('Error inserting barang:', error);
@@ -164,6 +261,9 @@ app.put('/api/barang/:id', async (req: Request, res: Response) => {
       keterangan: (keterangan || '').trim()
     }).where(eq(barang.id, id)).returning();
 
+    // Broadcast change
+    broadcastChange('barang', 'update', updated);
+
     return res.json({ success: true, data: updated });
   } catch (error: any) {
     console.error('Error updating barang:', error);
@@ -175,6 +275,10 @@ app.delete('/api/barang/:id', async (req: Request, res: Response) => {
   const id = parseInt(req.params.id, 10);
   try {
     await db.delete(barang).where(eq(barang.id, id));
+
+    // Broadcast change
+    broadcastChange('barang', 'delete', { id });
+
     return res.json({ success: true });
   } catch (error: any) {
     console.error('Error deleting barang:', error);
@@ -221,6 +325,10 @@ app.post('/api/transaksi-masuk', async (req: Request, res: Response) => {
           .where(eq(barang.id, target.id));
       }
     }
+
+    // Broadcast to all browsers
+    broadcastChange('transaksi_masuk', 'create', inserted);
+    broadcastChange('barang', 'stock_increment');
 
     return res.json({ success: true, data: inserted });
   } catch (error: any) {
@@ -282,6 +390,10 @@ app.post('/api/transaksi-keluar', async (req: Request, res: Response) => {
       }
     }
 
+    // Broadcast to all browsers
+    broadcastChange('transaksi_keluar', 'create', inserted);
+    broadcastChange('barang', 'stock_decrement');
+
     return res.json({ success: true, data: inserted });
   } catch (error: any) {
     console.error('Error creating outbound transaction:', error);
@@ -313,6 +425,7 @@ app.put('/api/pengaturan', async (req: Request, res: Response) => {
   const { namaKepalaBagian, nipKepalaBagian, namaPerusahaan, alamatGudang } = req.body;
   try {
     const list = await db.select().from(pengaturanGudang).limit(1);
+    let result;
     if (list.length > 0) {
       const [updated] = await db.update(pengaturanGudang).set({
         namaKepalaBagian: (namaKepalaBagian || '').trim(),
@@ -321,7 +434,7 @@ app.put('/api/pengaturan', async (req: Request, res: Response) => {
         alamatGudang: (alamatGudang || '').trim(),
         updatedAt: new Date()
       }).where(eq(pengaturanGudang.id, list[0].id)).returning();
-      return res.json({ success: true, data: updated });
+      result = updated;
     } else {
       const [inserted] = await db.insert(pengaturanGudang).values({
         namaKepalaBagian: (namaKepalaBagian || '').trim(),
@@ -329,8 +442,13 @@ app.put('/api/pengaturan', async (req: Request, res: Response) => {
         namaPerusahaan: (namaPerusahaan || '').trim(),
         alamatGudang: (alamatGudang || '').trim()
       }).returning();
-      return res.json({ success: true, data: inserted });
+      result = inserted;
     }
+
+    // Broadcast settings update
+    broadcastChange('pengaturan', 'update', result);
+
+    return res.json({ success: true, data: result });
   } catch (error: any) {
     console.error('Error updating settings:', error);
     return res.status(500).json({ error: 'Gagal menyimpan pengaturan ke database' });
@@ -356,8 +474,8 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running at http://0.0.0.0:${PORT}`);
+  server.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running at http://0.0.0.0:${PORT} (WebSocket attached on /api/ws)`);
   });
 }
 
