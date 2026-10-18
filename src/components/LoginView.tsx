@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { AuthService } from '../services/storage';
 import { AlertDialog } from './AlertDialog';
-import { Eye, EyeOff, ShieldCheck, UserCheck } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 
 interface LoginViewProps {
   onLoginSuccess: () => void;
@@ -58,11 +58,6 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, onNavigate
     setShowPassword(!showPassword);
   };
 
-  const fillQuickAccount = (quickEmail: string, quickPass: string) => {
-    setEmail(quickEmail);
-    setPassword(quickPass);
-  };
-
   return (
     <div className="auth-background">
       <div className="auth-card">
@@ -76,7 +71,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, onNavigate
         />
 
         <h1 className="auth-title">Sistem Gudang & Inventaris</h1>
-        <p className="auth-subtitle">Silakan login sesuai peran akses Anda (Admin / Petugas Gudang)</p>
+        <p className="auth-subtitle">Silakan masukkan email dan password untuk masuk ke sistem</p>
 
         <form onSubmit={handleLogin} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div className="input-group">
@@ -84,7 +79,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, onNavigate
             <input
               type="email"
               className="auth-input"
-              placeholder="admin@gudang.com / dimasfrandika87@gmail.com"
+              placeholder="Masukkan email terdaftar"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               autoFocus
@@ -130,75 +125,6 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, onNavigate
           >
             Daftar Akun Baru
           </button>
-        </div>
-
-        {/* Quick Demo Switcher per Actor Requirement */}
-        <div style={{
-          marginTop: '10px',
-          padding: '14px',
-          background: '#f8fafc',
-          borderRadius: '10px',
-          border: '1px solid #e2e8f0',
-          width: '100%'
-        }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '8px', textTransform: 'uppercase' }}>
-            Pilih Akun Demo Cepat (Role-Based Access):
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <button
-              type="button"
-              onClick={() => fillQuickAccount('admin@gudang.com', 'admin')}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '8px 12px',
-                borderRadius: '8px',
-                border: '1px solid #fecaca',
-                background: '#fff5f5',
-                cursor: 'pointer',
-                textAlign: 'left'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <ShieldCheck size={16} color="#dc2626" />
-                <div>
-                  <div style={{ fontSize: '12px', fontWeight: 700, color: '#991b1b' }}>Admin (Akses Penuh)</div>
-                  <div style={{ fontSize: '11px', color: '#7f1d1d' }}>admin@gudang.com</div>
-                </div>
-              </div>
-              <span style={{ fontSize: '10px', fontWeight: 700, background: '#fee2e2', color: '#991b1b', padding: '2px 6px', borderRadius: '4px' }}>
-                Gunakan
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => fillQuickAccount('dimasfrandika87@gmail.com', 'password123')}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '8px 12px',
-                borderRadius: '8px',
-                border: '1px solid #bfdbfe',
-                background: '#eff6ff',
-                cursor: 'pointer',
-                textAlign: 'left'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <UserCheck size={16} color="#2563eb" />
-                <div>
-                  <div style={{ fontSize: '12px', fontWeight: 700, color: '#1e40af' }}>Petugas Gudang (Operasional)</div>
-                  <div style={{ fontSize: '11px', color: '#1e3a8a' }}>dimasfrandika87@gmail.com</div>
-                </div>
-              </div>
-              <span style={{ fontSize: '10px', fontWeight: 700, background: '#dbeafe', color: '#1e40af', padding: '2px 6px', borderRadius: '4px' }}>
-                Gunakan
-              </span>
-            </button>
-          </div>
         </div>
       </div>
 

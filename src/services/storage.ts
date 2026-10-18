@@ -14,6 +14,55 @@ const STORAGE_KEY_MASUK = 'gudang_transaksi_masuk_v3';
 const STORAGE_KEY_KELUAR = 'gudang_transaksi_keluar_v3';
 const STORAGE_KEY_PENGATURAN = 'gudang_pengaturan_v3';
 
+export async function syncAllFromBackend(): Promise<void> {
+  try {
+    const [barangRes, masukRes, keluarRes, pengaturanRes, usersRes] = await Promise.all([
+      fetch('/api/barang'),
+      fetch('/api/transaksi-masuk'),
+      fetch('/api/transaksi-keluar'),
+      fetch('/api/pengaturan'),
+      fetch('/api/users')
+    ]);
+
+    if (barangRes.ok) {
+      const data = await barangRes.json();
+      if (Array.isArray(data) && data.length > 0) {
+        localStorage.setItem(STORAGE_KEY_BARANG, JSON.stringify(data));
+      }
+    }
+
+    if (masukRes.ok) {
+      const data = await masukRes.json();
+      if (Array.isArray(data)) {
+        localStorage.setItem(STORAGE_KEY_MASUK, JSON.stringify(data));
+      }
+    }
+
+    if (keluarRes.ok) {
+      const data = await keluarRes.json();
+      if (Array.isArray(data)) {
+        localStorage.setItem(STORAGE_KEY_KELUAR, JSON.stringify(data));
+      }
+    }
+
+    if (pengaturanRes.ok) {
+      const data = await pengaturanRes.json();
+      if (data && data.namaKepalaBagian) {
+        localStorage.setItem(STORAGE_KEY_PENGATURAN, JSON.stringify(data));
+      }
+    }
+
+    if (usersRes.ok) {
+      const data = await usersRes.json();
+      if (Array.isArray(data) && data.length > 0) {
+        localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(data));
+      }
+    }
+  } catch (error) {
+    console.warn('Backend sync failed, using cached data:', error);
+  }
+}
+
 const INITIAL_BARANG: Barang[] = [
   { id: 1, idBarang: 'BRG001', namaBarang: 'Laptop ASUS VivoBook 15', kategori: 'Elektronik', stok: 25, minStok: 5, satuan: 'Unit', status: 'aktif', keterangan: 'Core i5 / 8GB / 512GB SSD' },
   { id: 2, idBarang: 'BRG002', namaBarang: 'Mouse Wireless Logitech M331', kategori: 'Aksesoris Komputer', stok: 120, minStok: 20, satuan: 'Pcs', status: 'aktif', keterangan: 'Silent Click 2.4GHz' },
@@ -155,6 +204,11 @@ export class BarangRepository {
 
     list.push(newBarang);
     this.saveStore(list);
+    fetch('/api/barang', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newBarang)
+    }).catch(err => console.warn('Cloud SQL insert sync warning:', err));
     return { success: true, data: newBarang };
   }
 
@@ -183,6 +237,11 @@ export class BarangRepository {
     };
 
     this.saveStore(list);
+    fetch(`/api/barang/${barang.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(list[index])
+    }).catch(err => console.warn('Cloud SQL update sync warning:', err));
     return { success: true };
   }
 
@@ -195,6 +254,11 @@ export class BarangRepository {
     const newStatus: 'aktif' | 'nonaktif' = item.status === 'aktif' ? 'nonaktif' : 'aktif';
     item.status = newStatus;
     this.saveStore(list);
+    fetch(`/api/barang/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(item)
+    }).catch(err => console.warn('Cloud SQL toggleStatus sync warning:', err));
     return { success: true, newStatus };
   }
 
@@ -202,6 +266,9 @@ export class BarangRepository {
     const list = this.getStore();
     const filtered = list.filter(b => b.id !== id);
     this.saveStore(filtered);
+    fetch(`/api/barang/${id}`, {
+      method: 'DELETE'
+    }).catch(err => console.warn('Cloud SQL delete sync warning:', err));
     return { success: true };
   }
 
@@ -297,6 +364,11 @@ export class TransaksiMasukRepository {
 
     list.unshift(newRecord);
     this.saveStore(list);
+    fetch('/api/transaksi-masuk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newRecord)
+    }).catch(err => console.warn('Cloud SQL transaksi masuk sync warning:', err));
     return { success: true, data: newRecord };
   }
 }
@@ -387,6 +459,11 @@ export class TransaksiKeluarRepository {
 
     list.unshift(newRecord);
     this.saveStore(list);
+    fetch('/api/transaksi-keluar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newRecord)
+    }).catch(err => console.warn('Cloud SQL transaksi keluar sync warning:', err));
     return { success: true, data: newRecord, warnings };
   }
 }
@@ -449,6 +526,11 @@ export class AuthService {
       return { success: false, message: 'Email sudah terdaftar' };
     }
     this.userRepo.save(nama, email, password, role);
+    fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nama, email, password, role })
+    }).catch(err => console.warn('Cloud SQL register sync warning:', err));
     return { success: true, message: 'Registrasi berhasil, silakan login' };
   }
 
@@ -524,6 +606,11 @@ export const PengaturanService = {
   savePengaturan(pengaturan: PengaturanGudang) {
     try {
       localStorage.setItem(STORAGE_KEY_PENGATURAN, JSON.stringify(pengaturan));
+      fetch('/api/pengaturan', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(pengaturan)
+      }).catch(err => console.warn('Cloud SQL pengaturan sync warning:', err));
     } catch (e) {
       console.warn('Failed to save pengaturan', e);
     }

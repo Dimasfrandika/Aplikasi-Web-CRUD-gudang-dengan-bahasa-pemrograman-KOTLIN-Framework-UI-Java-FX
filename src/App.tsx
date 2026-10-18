@@ -9,7 +9,8 @@ import {
   SessionService,
   BarangRepository,
   TransaksiMasukRepository,
-  TransaksiKeluarRepository
+  TransaksiKeluarRepository,
+  syncAllFromBackend
 } from './services/storage';
 import { LoginView } from './components/LoginView';
 import { RegisterView } from './components/RegisterView';
@@ -30,7 +31,8 @@ export function App() {
   const [transaksiMasuk, setTransaksiMasuk] = useState<TransaksiBarangMasuk[]>([]);
   const [transaksiKeluar, setTransaksiKeluar] = useState<TransaksiBarangKeluar[]>([]);
 
-  const reloadData = () => {
+  const reloadData = async () => {
+    // 1. Immediately read from cache for snappy UI
     const barangRepo = new BarangRepository();
     const masukRepo = new TransaksiMasukRepository();
     const keluarRepo = new TransaksiKeluarRepository();
@@ -38,9 +40,21 @@ export function App() {
     setBarangList(barangRepo.getAll(true));
     setTransaksiMasuk(masukRepo.getAll());
     setTransaksiKeluar(keluarRepo.getAll());
+
+    // 2. Fetch fresh data from Cloud SQL backend
+    try {
+      await syncAllFromBackend();
+      setBarangList(barangRepo.getAll(true));
+      setTransaksiMasuk(masukRepo.getAll());
+      setTransaksiKeluar(keluarRepo.getAll());
+    } catch (e) {
+      console.warn('Sync failed, using offline cache', e);
+    }
   };
 
   useEffect(() => {
+    // Pre-sync on app boot
+    syncAllFromBackend().catch(() => {});
     const currentSession = SessionService.getSession();
     if (currentSession.userId) {
       setSession(currentSession);

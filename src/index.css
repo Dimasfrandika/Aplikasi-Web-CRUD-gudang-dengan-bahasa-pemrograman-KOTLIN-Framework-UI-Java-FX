@@ -805,6 +805,12 @@ body {
     color: #000000 !important;
   }
 
+  /* Sembunyikan konten halaman latar belakang saat mencetak modal surat jalan */
+  body:has(.modal-overlay) .split-view,
+  body:has(.modal-overlay) .gudang-card {
+    display: none !important;
+  }
+
   .modal-overlay {
     position: static !important;
     background: transparent !important;

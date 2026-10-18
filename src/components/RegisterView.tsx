@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { AuthService } from '../services/storage';
 import { AlertDialog } from './AlertDialog';
-import { Eye, EyeOff, Shield, User } from 'lucide-react';
-import { UserRole } from '../types';
+import { Eye, EyeOff, User } from 'lucide-react';
 
 interface RegisterViewProps {
   onRegisterSuccess: () => void;
@@ -13,7 +12,6 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onRegisterSuccess, o
   const [nama, setNama] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<UserRole>('petugas');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -49,13 +47,13 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onRegisterSuccess, o
       return;
     }
 
-    const result = authService.register(trimmedNama, trimmedEmail, trimmedPassword, role);
+    const result = authService.register(trimmedNama, trimmedEmail, trimmedPassword, 'petugas');
 
     if (result.success) {
       setAlertState({
         isOpen: true,
         title: 'Registrasi Berhasil',
-        message: `Akun atas nama ${trimmedNama || trimmedEmail} dengan peran ${role === 'admin' ? 'Admin' : 'Petugas Gudang'} berhasil dibuat. Silakan login.`,
+        message: `Akun Petugas Gudang atas nama ${trimmedNama || trimmedEmail} berhasil dibuat. Silakan login.`,
         onDismiss: () => {
           onRegisterSuccess();
         }
@@ -110,52 +108,31 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onRegisterSuccess, o
           </div>
 
           <div className="input-group">
-            <label className="input-label">Peran Pengguna (Role)</label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-              <button
-                type="button"
-                onClick={() => setRole('petugas')}
-                style={{
-                  padding: '10px',
-                  borderRadius: '8px',
-                  border: role === 'petugas' ? '2px solid #2563eb' : '1px solid #cbd5e1',
-                  background: role === 'petugas' ? '#eff6ff' : '#ffffff',
-                  color: role === 'petugas' ? '#1e40af' : '#475569',
-                  fontWeight: 600,
-                  fontSize: '13px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px',
-                  cursor: 'pointer'
-                }}
-              >
-                <User size={16} />
-                Petugas Gudang
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setRole('admin')}
-                style={{
-                  padding: '10px',
-                  borderRadius: '8px',
-                  border: role === 'admin' ? '2px solid #dc2626' : '1px solid #cbd5e1',
-                  background: role === 'admin' ? '#fff5f5' : '#ffffff',
-                  color: role === 'admin' ? '#991b1b' : '#475569',
-                  fontWeight: 600,
-                  fontSize: '13px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px',
-                  cursor: 'pointer'
-                }}
-              >
-                <Shield size={16} />
-                Admin
-              </button>
+            <label className="input-label">Peran Akun Baru</label>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '10px 14px',
+              borderRadius: '8px',
+              border: '1.5px solid #bfdbfe',
+              background: '#eff6ff',
+              color: '#1e40af'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <User size={18} color="#2563eb" />
+                <div>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#1e40af' }}>Petugas Gudang (Operasional)</div>
+                  <div style={{ fontSize: '11px', color: '#3b82f6' }}>Mencatat transaksi masuk & keluar, cetak surat barang</div>
+                </div>
+              </div>
+              <span style={{ fontSize: '10px', fontWeight: 700, background: '#dbeafe', color: '#1e40af', padding: '3px 8px', borderRadius: '4px' }}>
+                Standar
+              </span>
             </div>
+            <p style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
+              *Catatan: Hak akses Administrator bersifat privat dan tidak dibuka untuk pendaftaran umum.
+            </p>
           </div>
 
           <div className="input-group">
