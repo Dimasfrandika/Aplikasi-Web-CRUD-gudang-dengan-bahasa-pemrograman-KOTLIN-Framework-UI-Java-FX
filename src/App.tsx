@@ -38,7 +38,7 @@ export function App() {
     try {
       // 1. Fetch fresh data directly from PostgreSQL backend API
       const fresh = await syncAllFromBackend();
-      if (fresh.barang && (fresh.barang.length > 0 || fresh.masuk.length > 0 || fresh.keluar.length > 0)) {
+      if (fresh.success) {
         setBarangList(fresh.barang);
         setTransaksiMasuk(fresh.masuk);
         setTransaksiKeluar(fresh.keluar);

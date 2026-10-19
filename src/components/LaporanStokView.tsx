@@ -7,6 +7,7 @@ import {
   ReportType
 } from '../types';
 import { PengaturanService } from '../services/storage';
+import { realtimeService } from '../services/realtime';
 import {
   Printer,
   Download,
@@ -54,11 +55,20 @@ export const LaporanStokView: React.FC<LaporanStokViewProps> = ({
     const cur = PengaturanService.getPengaturan();
     setNamaKepalaBagian(cur.namaKepalaBagian);
     setNipKepalaBagian(cur.nipKepalaBagian);
+
+    const unsub = realtimeService.subscribe((evt) => {
+      if (evt.entity === 'pengaturan') {
+        const fresh = PengaturanService.getPengaturan();
+        setNamaKepalaBagian(fresh.namaKepalaBagian);
+        setNipKepalaBagian(fresh.nipKepalaBagian);
+      }
+    });
+    return unsub;
   }, []);
 
-  const handleSaveKepala = () => {
+  const handleSaveKepala = async () => {
     setIsEditingKepala(false);
-    PengaturanService.savePengaturan({
+    await PengaturanService.savePengaturan({
       ...pengaturan,
       namaKepalaBagian: namaKepalaBagian.trim(),
       nipKepalaBagian: nipKepalaBagian.trim()

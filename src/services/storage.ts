@@ -15,6 +15,7 @@ export const STORAGE_KEY_KELUAR = 'gudang_transaksi_keluar_v3';
 export const STORAGE_KEY_PENGATURAN = 'gudang_pengaturan_v3';
 
 export interface SyncResult {
+  success: boolean;
   barang: Barang[];
   masuk: TransaksiBarangMasuk[];
   keluar: TransaksiBarangKeluar[];
@@ -27,6 +28,7 @@ export interface SyncResult {
  */
 export async function syncAllFromBackend(): Promise<SyncResult> {
   const result: SyncResult = {
+    success: false,
     barang: [],
     masuk: [],
     keluar: []
@@ -41,11 +43,14 @@ export async function syncAllFromBackend(): Promise<SyncResult> {
       fetch('/api/users')
     ]);
 
+    let okCount = 0;
+
     if (barangRes.ok) {
       const data = await barangRes.json();
       if (Array.isArray(data)) {
         result.barang = data;
         localStorage.setItem(STORAGE_KEY_BARANG, JSON.stringify(data));
+        okCount++;
       }
     }
 
@@ -54,6 +59,7 @@ export async function syncAllFromBackend(): Promise<SyncResult> {
       if (Array.isArray(data)) {
         result.masuk = data;
         localStorage.setItem(STORAGE_KEY_MASUK, JSON.stringify(data));
+        okCount++;
       }
     }
 
@@ -62,6 +68,7 @@ export async function syncAllFromBackend(): Promise<SyncResult> {
       if (Array.isArray(data)) {
         result.keluar = data;
         localStorage.setItem(STORAGE_KEY_KELUAR, JSON.stringify(data));
+        okCount++;
       }
     }
 
@@ -79,8 +86,11 @@ export async function syncAllFromBackend(): Promise<SyncResult> {
         localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(data));
       }
     }
+
+    result.success = okCount >= 3;
   } catch (error) {
     console.warn('Backend sync failed, using cached data:', error);
+    result.success = false;
   }
 
   return result;
