@@ -7,14 +7,31 @@ import {
   PengaturanGudang
 } from '../types';
 
-const STORAGE_KEY_BARANG = 'gudang_barang_list_v3';
-const STORAGE_KEY_USERS = 'gudang_users_list_v3';
-const STORAGE_KEY_SESSION = 'gudang_user_session_v3';
-const STORAGE_KEY_MASUK = 'gudang_transaksi_masuk_v3';
-const STORAGE_KEY_KELUAR = 'gudang_transaksi_keluar_v3';
-const STORAGE_KEY_PENGATURAN = 'gudang_pengaturan_v3';
+export const STORAGE_KEY_BARANG = 'gudang_barang_list_v3';
+export const STORAGE_KEY_USERS = 'gudang_users_list_v3';
+export const STORAGE_KEY_SESSION = 'gudang_user_session_v3';
+export const STORAGE_KEY_MASUK = 'gudang_transaksi_masuk_v3';
+export const STORAGE_KEY_KELUAR = 'gudang_transaksi_keluar_v3';
+export const STORAGE_KEY_PENGATURAN = 'gudang_pengaturan_v3';
 
-export async function syncAllFromBackend(): Promise<void> {
+export interface SyncResult {
+  barang: Barang[];
+  masuk: TransaksiBarangMasuk[];
+  keluar: TransaksiBarangKeluar[];
+  pengaturan?: PengaturanGudang;
+}
+
+/**
+ * Fetch fresh data directly from Express / Cloud SQL PostgreSQL API
+ * and synchronize into local storage as offline cache.
+ */
+export async function syncAllFromBackend(): Promise<SyncResult> {
+  const result: SyncResult = {
+    barang: [],
+    masuk: [],
+    keluar: []
+  };
+
   try {
     const [barangRes, masukRes, keluarRes, pengaturanRes, usersRes] = await Promise.all([
       fetch('/api/barang'),
@@ -27,6 +44,7 @@ export async function syncAllFromBackend(): Promise<void> {
     if (barangRes.ok) {
       const data = await barangRes.json();
       if (Array.isArray(data)) {
+        result.barang = data;
         localStorage.setItem(STORAGE_KEY_BARANG, JSON.stringify(data));
       }
     }
@@ -34,6 +52,7 @@ export async function syncAllFromBackend(): Promise<void> {
     if (masukRes.ok) {
       const data = await masukRes.json();
       if (Array.isArray(data)) {
+        result.masuk = data;
         localStorage.setItem(STORAGE_KEY_MASUK, JSON.stringify(data));
       }
     }
@@ -41,6 +60,7 @@ export async function syncAllFromBackend(): Promise<void> {
     if (keluarRes.ok) {
       const data = await keluarRes.json();
       if (Array.isArray(data)) {
+        result.keluar = data;
         localStorage.setItem(STORAGE_KEY_KELUAR, JSON.stringify(data));
       }
     }
@@ -48,6 +68,7 @@ export async function syncAllFromBackend(): Promise<void> {
     if (pengaturanRes.ok) {
       const data = await pengaturanRes.json();
       if (data && (data.namaKepalaBagian || data.namaPerusahaan)) {
+        result.pengaturan = data;
         localStorage.setItem(STORAGE_KEY_PENGATURAN, JSON.stringify(data));
       }
     }
@@ -61,6 +82,8 @@ export async function syncAllFromBackend(): Promise<void> {
   } catch (error) {
     console.warn('Backend sync failed, using cached data:', error);
   }
+
+  return result;
 }
 
 const INITIAL_BARANG: Barang[] = [
@@ -183,92 +206,133 @@ export class BarangRepository {
     return list.find(b => b.id === id) || null;
   }
 
-  insert(barang: Omit<Barang, 'id'>): { success: boolean; data?: Barang; message?: string } {
-    const list = this.getStore();
-    if (list.some(b => b.idBarang.toLowerCase() === barang.idBarang.trim().toLowerCase())) {
-      return { success: false, message: `Kode Barang '${barang.idBarang}' sudah terdaftar!` };
+  async fetchAllFromApi(): Promise<Barang[]> {
+    try {
+      const res = await fetch('/api/barang');
+      if (!res.ok) throw new Error('Gagal mengambil data dari server');
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        this.saveStore(data);
+        return data;
+      }
+    } catch (err) {
+      console.warn('fetchAllFromApi fallback:', err);
     }
-
-    const nextId = list.length > 0 ? Math.max(...list.map(b => b.id)) + 1 : 1;
-    const newBarang: Barang = {
-      id: nextId,
-      idBarang: barang.idBarang.trim().toUpperCase(),
-      namaBarang: barang.namaBarang.trim(),
-      kategori: barang.kategori.trim() || 'Umum',
-      stok: Number(barang.stok) || 0,
-      minStok: Number(barang.minStok) || 0,
-      satuan: barang.satuan.trim() || 'Unit',
-      status: barang.status || 'aktif',
-      keterangan: barang.keterangan?.trim() || ''
-    };
-
-    list.push(newBarang);
-    this.saveStore(list);
-    fetch('/api/barang', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newBarang)
-    }).catch(err => console.warn('Cloud SQL insert sync warning:', err));
-    return { success: true, data: newBarang };
+    return this.getAll();
   }
 
-  update(barang: Barang): { success: boolean; message?: string } {
-    const list = this.getStore();
-    const index = list.findIndex(b => b.id === barang.id);
-    if (index === -1) {
-      return { success: false, message: 'Data barang tidak ditemukan!' };
-    }
-
-    const duplicate = list.find(b => b.id !== barang.id && b.idBarang.toLowerCase() === barang.idBarang.trim().toLowerCase());
-    if (duplicate) {
-      return { success: false, message: `Kode Barang '${barang.idBarang}' sudah digunakan barang lain!` };
-    }
-
-    list[index] = {
-      ...list[index],
-      idBarang: barang.idBarang.trim().toUpperCase(),
-      namaBarang: barang.namaBarang.trim(),
-      kategori: barang.kategori.trim() || 'Umum',
-      stok: Number(barang.stok) || 0,
-      minStok: Number(barang.minStok) || 0,
-      satuan: barang.satuan.trim() || 'Unit',
-      status: barang.status || 'aktif',
-      keterangan: barang.keterangan?.trim() || ''
-    };
-
-    this.saveStore(list);
-    fetch(`/api/barang/${barang.id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(list[index])
-    }).catch(err => console.warn('Cloud SQL update sync warning:', err));
-    return { success: true };
+  async insertApi(barang: Omit<Barang, 'id'>): Promise<{ success: boolean; data?: Barang; message?: string }> {
+    return this.insert(barang);
   }
 
-  toggleStatus(id: number): { success: boolean; newStatus?: 'aktif' | 'nonaktif'; message?: string } {
+  async insert(barang: Omit<Barang, 'id'>): Promise<{ success: boolean; data?: Barang; message?: string }> {
+    try {
+      const res = await fetch('/api/barang', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(barang)
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        return { success: false, message: result.error || 'Gagal menambahkan barang ke server' };
+      }
+
+      // Returned record has the authoritative database auto-increment ID
+      const savedBarang: Barang = result.data;
+      const list = this.getStore();
+      const existingIdx = list.findIndex(b => b.id === savedBarang.id || b.idBarang === savedBarang.idBarang);
+      if (existingIdx !== -1) {
+        list[existingIdx] = savedBarang;
+      } else {
+        list.push(savedBarang);
+      }
+      this.saveStore(list);
+      return { success: true, data: savedBarang };
+    } catch (err: any) {
+      console.warn('Network error, saving to local offline storage:', err);
+      // Offline fallback: generate client id
+      const list = this.getStore();
+      if (list.some(b => b.idBarang.toLowerCase() === barang.idBarang.trim().toLowerCase())) {
+        return { success: false, message: `Kode Barang '${barang.idBarang}' sudah terdaftar!` };
+      }
+      const nextId = list.length > 0 ? Math.max(...list.map(b => b.id)) + 1 : 1;
+      const newBarang: Barang = {
+        ...barang,
+        id: nextId
+      };
+      list.push(newBarang);
+      this.saveStore(list);
+      return { success: true, data: newBarang };
+    }
+  }
+
+  async update(barang: Barang): Promise<{ success: boolean; message?: string; data?: Barang }> {
+    try {
+      const res = await fetch(`/api/barang/${barang.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(barang)
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        return { success: false, message: result.error || 'Gagal memperbarui barang di server' };
+      }
+
+      const updated = result.data || barang;
+      const list = this.getStore();
+      const index = list.findIndex(b => b.id === barang.id);
+      if (index !== -1) {
+        list[index] = updated;
+      } else {
+        list.push(updated);
+      }
+      this.saveStore(list);
+      return { success: true, data: updated };
+    } catch (err: any) {
+      console.warn('Offline update fallback:', err);
+      const list = this.getStore();
+      const index = list.findIndex(b => b.id === barang.id);
+      if (index === -1) {
+        return { success: false, message: 'Data barang tidak ditemukan!' };
+      }
+      list[index] = barang;
+      this.saveStore(list);
+      return { success: true, data: barang };
+    }
+  }
+
+  async toggleStatus(id: number): Promise<{ success: boolean; newStatus?: 'aktif' | 'nonaktif'; message?: string }> {
     const list = this.getStore();
     const item = list.find(b => b.id === id);
     if (!item) {
       return { success: false, message: 'Barang tidak ditemukan' };
     }
     const newStatus: 'aktif' | 'nonaktif' = item.status === 'aktif' ? 'nonaktif' : 'aktif';
-    item.status = newStatus;
-    this.saveStore(list);
-    fetch(`/api/barang/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(item)
-    }).catch(err => console.warn('Cloud SQL toggleStatus sync warning:', err));
-    return { success: true, newStatus };
+    const updated = { ...item, status: newStatus };
+    return this.update(updated).then(res => {
+      if (res.success) {
+        return { success: true, newStatus };
+      }
+      return { success: false, message: res.message };
+    });
   }
 
-  delete(id: number): { success: boolean; message?: string } {
+  async delete(id: number): Promise<{ success: boolean; message?: string }> {
+    try {
+      const res = await fetch(`/api/barang/${id}`, {
+        method: 'DELETE'
+      });
+      if (!res.ok) {
+        const result = await res.json();
+        return { success: false, message: result.error || 'Gagal menghapus barang dari server' };
+      }
+    } catch (err: any) {
+      console.warn('Offline delete fallback:', err);
+    }
+
     const list = this.getStore();
     const filtered = list.filter(b => b.id !== id);
     this.saveStore(filtered);
-    fetch(`/api/barang/${id}`, {
-      method: 'DELETE'
-    }).catch(err => console.warn('Cloud SQL delete sync warning:', err));
     return { success: true };
   }
 
@@ -296,7 +360,6 @@ export class TransaksiMasukRepository {
       const data = localStorage.getItem(STORAGE_KEY_MASUK);
       if (data) {
         const parsed = JSON.parse(data);
-        // Normalize single-item to items array if any legacy record exists
         return parsed.map((item: any) => {
           if (!item.items && item.namaBarang) {
             return {
@@ -333,9 +396,26 @@ export class TransaksiMasukRepository {
     return this.getStore().sort((a, b) => new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime());
   }
 
-  insert(data: Omit<TransaksiBarangMasuk, 'id'>): { success: boolean; message?: string; data?: TransaksiBarangMasuk } {
-    const barangRepo = new BarangRepository();
+  async fetchAllFromApi(): Promise<TransaksiBarangMasuk[]> {
+    try {
+      const res = await fetch('/api/transaksi-masuk');
+      if (!res.ok) throw new Error('Gagal memuat transaksi masuk');
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        this.saveStore(data);
+        return data;
+      }
+    } catch (err) {
+      console.warn('fetchAllFromApi transaksi masuk fallback:', err);
+    }
+    return this.getAll();
+  }
 
+  async insertApi(data: Omit<TransaksiBarangMasuk, 'id'>): Promise<{ success: boolean; message?: string; data?: TransaksiBarangMasuk }> {
+    return this.insert(data);
+  }
+
+  async insert(data: Omit<TransaksiBarangMasuk, 'id'>): Promise<{ success: boolean; message?: string; data?: TransaksiBarangMasuk }> {
     if (!data.items || data.items.length === 0) {
       return { success: false, message: 'Harus ada minimal 1 barang dalam transaksi penerimaan!' };
     }
@@ -344,32 +424,47 @@ export class TransaksiMasukRepository {
       if (item.jumlah <= 0) {
         return { success: false, message: `Jumlah masuk untuk barang '${item.namaBarang}' harus lebih dari 0!` };
       }
-      const barang = barangRepo.getById(item.barangId);
-      if (!barang) {
-        return { success: false, message: `Barang dengan ID ${item.barangId} tidak ditemukan di sistem!` };
+    }
+
+    try {
+      const res = await fetch('/api/transaksi-masuk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        return { success: false, message: result.error || 'Gagal menyimpan transaksi masuk ke server' };
       }
+
+      const saved: TransaksiBarangMasuk = result.data;
+      const list = this.getStore();
+      list.unshift(saved);
+      this.saveStore(list);
+
+      // Also update local stocks to reflect increment
+      const barangRepo = new BarangRepository();
+      for (const item of saved.items) {
+        barangRepo.updateStok(item.barangId, item.jumlah);
+      }
+
+      return { success: true, data: saved };
+    } catch (err: any) {
+      console.warn('Network error, saving inbound transaction locally:', err);
+      const barangRepo = new BarangRepository();
+      for (const item of data.items) {
+        barangRepo.updateStok(item.barangId, item.jumlah);
+      }
+      const list = this.getStore();
+      const nextId = list.length > 0 ? Math.max(...list.map(t => t.id)) + 1 : 1;
+      const localRecord: TransaksiBarangMasuk = {
+        ...data,
+        id: nextId
+      };
+      list.unshift(localRecord);
+      this.saveStore(list);
+      return { success: true, data: localRecord };
     }
-
-    // Apply stock additions
-    for (const item of data.items) {
-      barangRepo.updateStok(item.barangId, item.jumlah);
-    }
-
-    const list = this.getStore();
-    const nextId = list.length > 0 ? Math.max(...list.map(t => t.id)) + 1 : 1;
-    const newRecord: TransaksiBarangMasuk = {
-      ...data,
-      id: nextId
-    };
-
-    list.unshift(newRecord);
-    this.saveStore(list);
-    fetch('/api/transaksi-masuk', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newRecord)
-    }).catch(err => console.warn('Cloud SQL transaksi masuk sync warning:', err));
-    return { success: true, data: newRecord };
   }
 }
 
@@ -416,55 +511,79 @@ export class TransaksiKeluarRepository {
     return this.getStore().sort((a, b) => new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime());
   }
 
-  insert(data: Omit<TransaksiBarangKeluar, 'id'>): { success: boolean; message?: string; data?: TransaksiBarangKeluar; warnings?: string[] } {
-    const barangRepo = new BarangRepository();
+  async fetchAllFromApi(): Promise<TransaksiBarangKeluar[]> {
+    try {
+      const res = await fetch('/api/transaksi-keluar');
+      if (!res.ok) throw new Error('Gagal memuat transaksi keluar');
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        this.saveStore(data);
+        return data;
+      }
+    } catch (err) {
+      console.warn('fetchAllFromApi transaksi keluar fallback:', err);
+    }
+    return this.getAll();
+  }
 
+  async insertApi(data: Omit<TransaksiBarangKeluar, 'id'>): Promise<{ success: boolean; message?: string; data?: TransaksiBarangKeluar; warnings?: string[] }> {
+    return this.insert(data);
+  }
+
+  async insert(data: Omit<TransaksiBarangKeluar, 'id'>): Promise<{ success: boolean; message?: string; data?: TransaksiBarangKeluar; warnings?: string[] }> {
     if (!data.items || data.items.length === 0) {
       return { success: false, message: 'Harus ada minimal 1 barang dalam transaksi pengeluaran!' };
     }
 
-    // First validate ALL items stock
-    for (const item of data.items) {
-      if (item.jumlah <= 0) {
-        return { success: false, message: `Jumlah pengeluaran untuk barang '${item.namaBarang}' harus lebih dari 0!` };
+    try {
+      const res = await fetch('/api/transaksi-keluar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        return { success: false, message: result.error || 'Gagal menyimpan transaksi keluar ke server' };
       }
-      const barang = barangRepo.getById(item.barangId);
-      if (!barang) {
-        return { success: false, message: `Barang '${item.namaBarang}' tidak ditemukan di sistem!` };
+
+      const saved: TransaksiBarangKeluar = result.data;
+      const list = this.getStore();
+      list.unshift(saved);
+      this.saveStore(list);
+
+      // Decrement local stock
+      const barangRepo = new BarangRepository();
+      const warnings: string[] = [];
+      for (const item of saved.items) {
+        const stockRes = barangRepo.updateStok(item.barangId, -item.jumlah);
+        const b = barangRepo.getById(item.barangId);
+        if (b && stockRes.newStok !== undefined && stockRes.newStok <= b.minStok) {
+          warnings.push(`Perhatian: Stok '${b.namaBarang}' tersisa ${stockRes.newStok} ${b.satuan} (mencapai batas minimum: ${b.minStok} ${b.satuan}).`);
+        }
       }
-      if (barang.stok < item.jumlah) {
-        return {
-          success: false,
-          message: `Stok tidak mencukupi untuk '${barang.namaBarang}'! Stok tersedia: ${barang.stok} ${barang.satuan}, jumlah diminta: ${item.jumlah} ${barang.satuan}.`
-        };
+
+      return { success: true, data: saved, warnings };
+    } catch (err: any) {
+      console.warn('Network error, saving outbound transaction locally:', err);
+      const barangRepo = new BarangRepository();
+      const warnings: string[] = [];
+      for (const item of data.items) {
+        const stockRes = barangRepo.updateStok(item.barangId, -item.jumlah);
+        const b = barangRepo.getById(item.barangId);
+        if (b && stockRes.newStok !== undefined && stockRes.newStok <= b.minStok) {
+          warnings.push(`Perhatian: Stok '${b.namaBarang}' tersisa ${stockRes.newStok} ${b.satuan} (batas minimum: ${b.minStok}).`);
+        }
       }
+      const list = this.getStore();
+      const nextId = list.length > 0 ? Math.max(...list.map(t => t.id)) + 1 : 1;
+      const localRecord: TransaksiBarangKeluar = {
+        ...data,
+        id: nextId
+      };
+      list.unshift(localRecord);
+      this.saveStore(list);
+      return { success: true, data: localRecord, warnings };
     }
-
-    // Now safely deduct all
-    const warnings: string[] = [];
-    for (const item of data.items) {
-      const res = barangRepo.updateStok(item.barangId, -item.jumlah);
-      const barang = barangRepo.getById(item.barangId);
-      if (barang && res.newStok !== undefined && res.newStok <= barang.minStok) {
-        warnings.push(`Perhatian: Stok '${barang.namaBarang}' tersisa ${res.newStok} ${barang.satuan} (mencapai batas min: ${barang.minStok} ${barang.satuan}).`);
-      }
-    }
-
-    const list = this.getStore();
-    const nextId = list.length > 0 ? Math.max(...list.map(t => t.id)) + 1 : 1;
-    const newRecord: TransaksiBarangKeluar = {
-      ...data,
-      id: nextId
-    };
-
-    list.unshift(newRecord);
-    this.saveStore(list);
-    fetch('/api/transaksi-keluar', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newRecord)
-    }).catch(err => console.warn('Cloud SQL transaksi keluar sync warning:', err));
-    return { success: true, data: newRecord, warnings };
   }
 }
 
@@ -518,26 +637,70 @@ export class UserRepository {
 export class AuthService {
   private userRepo = new UserRepository();
 
-  register(nama: string, email: string, password: string, role: 'admin' | 'petugas' = 'petugas'): { success: boolean; message?: string } {
+  async register(nama: string, email: string, password: string, role: 'admin' | 'petugas' = 'petugas'): Promise<{ success: boolean; message?: string }> {
     if (!email.trim() || !password.trim()) {
       return { success: false, message: 'Email dan password wajib diisi' };
     }
-    if (this.userRepo.findByEmail(email)) {
-      return { success: false, message: 'Email sudah terdaftar' };
+
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nama, email, password, role })
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        return { success: false, message: result.error || 'Gagal mendaftar akun di server' };
+      }
+
+      this.userRepo.save(nama, email, password, role);
+      return { success: true, message: 'Registrasi berhasil, silakan login' };
+    } catch (err: any) {
+      console.warn('Register fallback to local:', err);
+      if (this.userRepo.findByEmail(email)) {
+        return { success: false, message: 'Email sudah terdaftar' };
+      }
+      this.userRepo.save(nama, email, password, role);
+      return { success: true, message: 'Registrasi berhasil (mode offline), silakan login' };
     }
-    this.userRepo.save(nama, email, password, role);
-    fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nama, email, password, role })
-    }).catch(err => console.warn('Cloud SQL register sync warning:', err));
-    return { success: true, message: 'Registrasi berhasil, silakan login' };
   }
 
-  login(email: string, password: string): { success: boolean; message?: string; user?: User } {
+  async login(email: string, password: string): Promise<{ success: boolean; message?: string; user?: User }> {
     if (!email.trim() || !password.trim()) {
       return { success: false, message: 'Email dan password wajib diisi' };
     }
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const result = await res.json();
+      if (res.ok && result.success && result.user) {
+        const user: User = {
+          id: result.user.id,
+          nama: result.user.nama,
+          email: result.user.email,
+          passwordHash: '',
+          role: result.user.role
+        };
+        SessionService.setSession({
+          userId: user.id,
+          nama: user.nama,
+          email: user.email,
+          role: user.role
+        });
+        return { success: true, user };
+      }
+      if (!res.ok) {
+        return { success: false, message: result.error || 'Email atau password salah' };
+      }
+    } catch (err) {
+      console.warn('API login failed, checking local credentials:', err);
+    }
+
+    // Local fallback check
     const user = this.userRepo.findByEmail(email);
     if (!user || user.passwordHash !== password) {
       return { success: false, message: 'Email atau password salah' };
@@ -603,16 +766,38 @@ export const PengaturanService = {
     return INITIAL_PENGATURAN;
   },
 
-  savePengaturan(pengaturan: PengaturanGudang) {
+  async fetchPengaturanFromApi(): Promise<PengaturanGudang> {
+    try {
+      const res = await fetch('/api/pengaturan');
+      if (res.ok) {
+        const data = await res.json();
+        if (data && (data.namaKepalaBagian || data.namaPerusahaan)) {
+          localStorage.setItem(STORAGE_KEY_PENGATURAN, JSON.stringify(data));
+          return data;
+        }
+      }
+    } catch (err) {
+      console.warn('fetchPengaturanFromApi fallback:', err);
+    }
+    return this.getPengaturan();
+  },
+
+  async savePengaturan(pengaturan: PengaturanGudang): Promise<{ success: boolean; message?: string }> {
     try {
       localStorage.setItem(STORAGE_KEY_PENGATURAN, JSON.stringify(pengaturan));
-      fetch('/api/pengaturan', {
+      const res = await fetch('/api/pengaturan', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(pengaturan)
-      }).catch(err => console.warn('Cloud SQL pengaturan sync warning:', err));
-    } catch (e) {
-      console.warn('Failed to save pengaturan', e);
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        return { success: false, message: err.error || 'Gagal menyimpan pengaturan ke server' };
+      }
+      return { success: true };
+    } catch (e: any) {
+      console.warn('Failed to save pengaturan online, saved locally:', e);
+      return { success: true };
     }
   }
 };

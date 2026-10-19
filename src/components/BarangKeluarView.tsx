@@ -164,7 +164,7 @@ export const BarangKeluarView: React.FC<BarangKeluarViewProps> = ({
   };
 
   // Submit Entire Transaction
-  const handleSubmitTransaction = (e: React.FormEvent) => {
+  const handleSubmitTransaction = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (draftItems.length === 0) {
@@ -194,7 +194,7 @@ export const BarangKeluarView: React.FC<BarangKeluarViewProps> = ({
       return;
     }
 
-    const result = repository.insert({
+    const result = await repository.insert({
       noDokumen: noDokumen.trim(),
       tanggal: tanggal,
       tujuan: tujuan.trim(),

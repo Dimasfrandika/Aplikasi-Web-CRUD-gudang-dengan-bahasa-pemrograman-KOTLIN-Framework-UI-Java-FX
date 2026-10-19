@@ -132,7 +132,7 @@ export const BarangMasukView: React.FC<BarangMasukViewProps> = ({
     setItemKeterangan('');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (draftItems.length === 0) {
@@ -162,7 +162,7 @@ export const BarangMasukView: React.FC<BarangMasukViewProps> = ({
       return;
     }
 
-    const result = repository.insert({
+    const result = await repository.insert({
       noDokumen: noDokumen.trim(),
       tanggal: tanggal,
       supplier: supplier.trim(),

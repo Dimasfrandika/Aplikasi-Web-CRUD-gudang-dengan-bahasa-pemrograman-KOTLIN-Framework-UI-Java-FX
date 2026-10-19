@@ -81,7 +81,7 @@ export const MasterBarangView: React.FC<MasterBarangViewProps> = ({
     setKeterangan('');
   };
 
-  const handleTambah = (e?: React.FormEvent) => {
+  const handleTambah = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
 
     if (!isAdmin) {
@@ -114,7 +114,7 @@ export const MasterBarangView: React.FC<MasterBarangViewProps> = ({
       return;
     }
 
-    const result = repository.insert({
+    const result = await repository.insert({
       idBarang: idBarang.trim(),
       namaBarang: namaBarang.trim(),
       kategori: kategori.trim(),
@@ -142,7 +142,7 @@ export const MasterBarangView: React.FC<MasterBarangViewProps> = ({
     }
   };
 
-  const handleUbah = () => {
+  const handleUbah = async () => {
     if (!isAdmin) {
       return;
     }
@@ -177,7 +177,7 @@ export const MasterBarangView: React.FC<MasterBarangViewProps> = ({
       return;
     }
 
-    const result = repository.update({
+    const result = await repository.update({
       id: selectedBarang.id,
       idBarang: idBarang.trim(),
       namaBarang: namaBarang.trim(),
@@ -205,10 +205,10 @@ export const MasterBarangView: React.FC<MasterBarangViewProps> = ({
     }
   };
 
-  const handleToggleStatus = () => {
+  const handleToggleStatus = async () => {
     if (!isAdmin || !selectedBarang) return;
 
-    const res = repository.toggleStatus(selectedBarang.id);
+    const res = await repository.toggleStatus(selectedBarang.id);
     if (res.success && res.newStatus) {
       setStatus(res.newStatus);
       onDataChanged();
@@ -220,10 +220,10 @@ export const MasterBarangView: React.FC<MasterBarangViewProps> = ({
     }
   };
 
-  const handleHapus = () => {
+  const handleHapus = async () => {
     if (!isAdmin || !selectedBarang) return;
 
-    repository.delete(selectedBarang.id);
+    await repository.delete(selectedBarang.id);
     onDataChanged();
     clearForm();
     setAlertState({

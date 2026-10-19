@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Barang,
   TransaksiBarangMasuk,
@@ -34,31 +34,27 @@ export function App() {
   const [realtimeStatus, setRealtimeStatus] = useState<RealtimeStatus>('connecting');
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
 
-  const isSyncingRef = useRef(false);
-
   const reloadData = useCallback(async () => {
+    try {
+      // 1. Fetch fresh data directly from PostgreSQL backend API
+      const fresh = await syncAllFromBackend();
+      if (fresh.barang && (fresh.barang.length > 0 || fresh.masuk.length > 0 || fresh.keluar.length > 0)) {
+        setBarangList(fresh.barang);
+        setTransaksiMasuk(fresh.masuk);
+        setTransaksiKeluar(fresh.keluar);
+        return;
+      }
+    } catch (e) {
+      console.warn('Sync failed, using offline cache:', e);
+    }
+
+    // 2. Fallback to local storage if API is unreachable
     const barangRepo = new BarangRepository();
     const masukRepo = new TransaksiMasukRepository();
     const keluarRepo = new TransaksiKeluarRepository();
-
-    // 1. Immediately read from cache for snappy UI
     setBarangList(barangRepo.getAll(true));
     setTransaksiMasuk(masukRepo.getAll());
     setTransaksiKeluar(keluarRepo.getAll());
-
-    // 2. Fetch fresh data from Cloud SQL backend
-    if (isSyncingRef.current) return;
-    isSyncingRef.current = true;
-    try {
-      await syncAllFromBackend();
-      setBarangList(barangRepo.getAll(true));
-      setTransaksiMasuk(masukRepo.getAll());
-      setTransaksiKeluar(keluarRepo.getAll());
-    } catch (e) {
-      console.warn('Sync failed, using offline cache', e);
-    } finally {
-      isSyncingRef.current = false;
-    }
   }, []);
 
   const handleForceSync = async () => {
@@ -78,7 +74,6 @@ export function App() {
       reloadData();
     } else {
       setCurrentScene('login');
-      // Even if not logged in, sync master data & users
       syncAllFromBackend().catch(() => {});
     }
 
@@ -87,7 +82,7 @@ export function App() {
       setRealtimeStatus(status);
     });
 
-    // 3. Real-time data change event listener (from any other browser / client)
+    // 3. Real-time data change event listener from other devices/browsers
     const unsubEvent = realtimeService.subscribe((_event) => {
       reloadData();
     });

@@ -29,7 +29,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onRegisterSuccess, o
 
   const authService = new AuthService();
 
-  const handleRegister = (e?: React.FormEvent) => {
+  const handleRegister = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
 
     setIsSubmitting(true);
@@ -47,7 +47,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onRegisterSuccess, o
       return;
     }
 
-    const result = authService.register(trimmedNama, trimmedEmail, trimmedPassword, 'petugas');
+    const result = await authService.register(trimmedNama, trimmedEmail, trimmedPassword, 'petugas');
 
     if (result.success) {
       setAlertState({

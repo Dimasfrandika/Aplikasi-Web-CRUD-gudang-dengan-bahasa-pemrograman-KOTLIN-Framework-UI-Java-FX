@@ -23,7 +23,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, onNavigate
 
   const authService = new AuthService();
 
-  const handleLogin = (e?: React.FormEvent) => {
+  const handleLogin = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
 
     setIsSubmitting(true);
@@ -40,7 +40,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, onNavigate
       return;
     }
 
-    const result = authService.login(trimmedEmail, trimmedPassword);
+    const result = await authService.login(trimmedEmail, trimmedPassword);
 
     if (result.success && result.user) {
       onLoginSuccess();
