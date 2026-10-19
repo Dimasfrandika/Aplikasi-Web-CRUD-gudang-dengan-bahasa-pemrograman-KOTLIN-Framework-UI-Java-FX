@@ -1,6 +1,100 @@
 <!doctype html>
 <html lang="id">
   <head>
+    <script>
+      (function () {
+        if (typeof window === 'undefined') return;
+
+        window.addEventListener('unhandledrejection', function (e) {
+          var reason = e && e.reason;
+          var msg = (reason && (reason.message || String(reason))) || '';
+          if (
+            msg.indexOf('WebSocket closed without opened') !== -1 ||
+            msg.indexOf('failed to connect to websocket') !== -1 ||
+            (msg.indexOf('vite') !== -1 && msg.indexOf('websocket') !== -1)
+          ) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            return true;
+          }
+        }, true);
+
+        window.addEventListener('error', function (e) {
+          var msg = (e && (e.message || '')) || '';
+          if (
+            msg.indexOf('WebSocket closed without opened') !== -1 ||
+            msg.indexOf('failed to connect to websocket') !== -1 ||
+            (msg.indexOf('vite') !== -1 && msg.indexOf('websocket') !== -1)
+          ) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            return true;
+          }
+        }, true);
+
+        var OriginalWebSocket = window.WebSocket;
+        if (!OriginalWebSocket) return;
+
+        function CustomWebSocket(url, protocols) {
+          var isViteHmr = false;
+          if (typeof protocols === 'string') {
+            isViteHmr = protocols === 'vite-hmr';
+          } else if (Array.isArray(protocols)) {
+            isViteHmr = protocols.indexOf('vite-hmr') !== -1;
+          } else if (typeof url === 'string') {
+            if (url.indexOf('vite-hmr') !== -1 || (url.slice(-1) === '/' && url.indexOf('/api/ws') === -1)) {
+              isViteHmr = true;
+            }
+          }
+
+          if (isViteHmr) {
+            var target = new EventTarget();
+            var handlers = {};
+            target.url = url;
+            target.protocol = 'vite-hmr';
+            target.readyState = 0;
+            target.send = function () {};
+            target.close = function () {
+              target.readyState = 3;
+              target.dispatchEvent(new Event('close'));
+            };
+
+            ['open', 'message', 'error', 'close'].forEach(function (type) {
+              Object.defineProperty(target, 'on' + type, {
+                get: function () { return handlers[type] || null; },
+                set: function (fn) {
+                  if (handlers[type]) target.removeEventListener(type, handlers[type]);
+                  handlers[type] = fn;
+                  if (fn) target.addEventListener(type, fn);
+                }
+              });
+            });
+
+            setTimeout(function () {
+              target.readyState = 1;
+              target.dispatchEvent(new Event('open'));
+              try {
+                target.dispatchEvent(new MessageEvent('message', {
+                  data: JSON.stringify({ type: 'connected' })
+                }));
+              } catch (_) {}
+            }, 10);
+
+            return target;
+          }
+
+          return new OriginalWebSocket(url, protocols);
+        }
+
+        CustomWebSocket.prototype = OriginalWebSocket.prototype;
+        CustomWebSocket.CONNECTING = 0;
+        CustomWebSocket.OPEN = 1;
+        CustomWebSocket.CLOSING = 2;
+        CustomWebSocket.CLOSED = 3;
+
+        window.WebSocket = CustomWebSocket;
+      })();
+    </script>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/images/gambar.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -11,30 +105,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script>
-      // Suppress Vite HMR WebSocket noise in cloud proxy preview
-      window.addEventListener('unhandledrejection', function (e) {
-        if (
-          e.reason &&
-          (typeof e.reason.message === 'string' &&
-            (e.reason.message.includes('WebSocket closed without opened') ||
-             e.reason.message.includes('failed to connect to websocket')))
-        ) {
-          e.preventDefault();
-          e.stopPropagation();
-        }
-      });
-      window.addEventListener('error', function (e) {
-        if (
-          e.message &&
-          (e.message.includes('WebSocket closed without opened') ||
-           e.message.includes('[vite] failed to connect to websocket'))
-        ) {
-          e.preventDefault();
-          e.stopPropagation();
-        }
-      });
-    </script>
   </head>
   <body>
     <div id="root"></div>
