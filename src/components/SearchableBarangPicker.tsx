@@ -385,17 +385,17 @@ export const SearchableBarangPicker: React.FC<SearchableBarangPickerProps> = ({
             </div>
 
             {/* Filter Toolbar inside Modal */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 220px', gap: '12px', margin: '16px 0' }}>
-              <div style={{ position: 'relative' }}>
+            <div className="picker-modal-filter-grid">
+              <div style={{ position: 'relative', width: '100%' }}>
                 <Search size={16} style={{ position: 'absolute', left: '12px', top: '12px', color: '#94a3b8' }} />
                 <input
                   type="text"
-                  placeholder="Cari berdasarkan kode, nama barang, atau spesifikasi..."
+                  placeholder="Cari kode, nama barang, atau spesifikasi..."
                   value={modalSearchQuery}
                   onChange={(e) => setModalSearchQuery(e.target.value)}
                   className="text-field"
                   autoFocus
-                  style={{ paddingLeft: '36px' }}
+                  style={{ paddingLeft: '36px', width: '100%' }}
                 />
               </div>
 
@@ -403,6 +403,7 @@ export const SearchableBarangPicker: React.FC<SearchableBarangPickerProps> = ({
                 value={modalCategoryFilter}
                 onChange={(e) => setModalCategoryFilter(e.target.value)}
                 className="select-field"
+                style={{ width: '100%' }}
               >
                 {categories.map(cat => (
                   <option key={cat} value={cat}>{cat}</option>

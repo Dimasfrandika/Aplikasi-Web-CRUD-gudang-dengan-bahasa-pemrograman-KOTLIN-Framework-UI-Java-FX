@@ -403,7 +403,7 @@ export const BarangKeluarView: React.FC<BarangKeluarViewProps> = ({
               )}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '2.5fr 1fr 2fr auto', gap: '12px', alignItems: 'end' }}>
+            <div className="item-builder-grid">
               <SearchableBarangPicker
                 barangList={activeBarangList}
                 selectedBarangId={selectedBarangId}
@@ -447,16 +447,17 @@ export const BarangKeluarView: React.FC<BarangKeluarViewProps> = ({
                 />
               </div>
 
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={handleAddItemToDraft}
-                disabled={isItemOverStock || parsedItemJumlah <= 0 || availableAfterDraft <= 0}
-                style={{ height: '42px', padding: '0 16px', fontSize: '13px' }}
-              >
-                <Plus size={16} />
-                + Tambah ke Daftar
-              </button>
+              <div className="item-builder-btn-wrapper">
+                <button
+                  type="button"
+                  className="btn btn-primary btn-add-builder"
+                  onClick={handleAddItemToDraft}
+                  disabled={isItemOverStock || parsedItemJumlah <= 0 || availableAfterDraft <= 0}
+                >
+                  <Plus size={16} />
+                  + Tambah ke Daftar
+                </button>
+              </div>
             </div>
 
             {isItemOverStock && (
@@ -558,15 +559,14 @@ export const BarangKeluarView: React.FC<BarangKeluarViewProps> = ({
             </div>
           </div>
 
-          <div style={{ position: 'relative', width: '260px' }}>
-            <Search size={15} style={{ position: 'absolute', left: '10px', top: '10px', color: '#94a3b8' }} />
+          <div className="search-input-wrapper">
+            <Search size={15} className="search-input-icon" />
             <input
               type="text"
               placeholder="Cari no. dok / penerima / barang..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="text-field"
-              style={{ paddingLeft: '32px', paddingRight: '10px', paddingTop: '6px', paddingBottom: '6px', fontSize: '13px' }}
+              className="text-field search-input-field"
             />
           </div>
         </div>

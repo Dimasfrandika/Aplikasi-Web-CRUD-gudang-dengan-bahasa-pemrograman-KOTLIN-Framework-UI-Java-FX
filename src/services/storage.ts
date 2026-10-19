@@ -96,20 +96,9 @@ export async function syncAllFromBackend(): Promise<SyncResult> {
   return result;
 }
 
-const INITIAL_BARANG: Barang[] = [
-  { id: 1, idBarang: 'BRG001', namaBarang: 'Laptop ASUS VivoBook 15', kategori: 'Elektronik', stok: 25, minStok: 5, satuan: 'Unit', status: 'aktif', keterangan: 'Core i5 / 8GB / 512GB SSD' },
-  { id: 2, idBarang: 'BRG002', namaBarang: 'Mouse Wireless Logitech M331', kategori: 'Aksesoris Komputer', stok: 120, minStok: 20, satuan: 'Pcs', status: 'aktif', keterangan: 'Silent Click 2.4GHz' },
-  { id: 3, idBarang: 'BRG003', namaBarang: 'Keyboard Mechanical Keychron K2', kategori: 'Aksesoris Komputer', stok: 8, minStok: 10, satuan: 'Unit', status: 'aktif', keterangan: 'Gateron Brown Switch (Stok Menipis)' },
-  { id: 4, idBarang: 'BRG004', namaBarang: 'Monitor LG 24 Inch IPS 75Hz', kategori: 'Elektronik', stok: 30, minStok: 5, satuan: 'Unit', status: 'aktif', keterangan: 'Full HD Borderless' },
-  { id: 5, idBarang: 'BRG005', namaBarang: 'Kabel HDMI 2.0 1.5 Meter', kategori: 'Kabel & Konektor', stok: 200, minStok: 30, satuan: 'Pcs', status: 'aktif', keterangan: 'Gold Plated 4K@60Hz' },
-  { id: 6, idBarang: 'BRG006', namaBarang: 'Kertas HVS A4 80gr PaperOne', kategori: 'Alat Tulis Kantor', stok: 85, minStok: 15, satuan: 'Rim', status: 'aktif', keterangan: 'Isi 500 lembar per rim' },
-  { id: 7, idBarang: 'BRG007', namaBarang: 'Printer Epson L3210 EcoTank', kategori: 'Elektronik', stok: 3, minStok: 5, satuan: 'Unit', status: 'aktif', keterangan: 'All-in-One Ink Tank (Perlu Restok)' },
-  { id: 8, idBarang: 'BRG008', namaBarang: 'Lakban Bening 2 Inch 100 Yard', kategori: 'Kemasan & Logistik', stok: 150, minStok: 25, satuan: 'Roll', status: 'aktif', keterangan: 'Daya rekat tinggi' }
-];
-
 const INITIAL_USERS: User[] = [
   { id: 1, nama: 'Administrator Gudang', email: 'admin@gudang.com', passwordHash: 'admin', role: 'admin' },
-  { id: 2, nama: 'Dimas Frandika', email: 'dimasfrandika87@gmail.com', passwordHash: 'password123', role: 'petugas' },
+  { id: 2, nama: 'Dimas Frandika', email: 'dimasfrandika87@gmail.com', passwordHash: 'Dimas87frandika', role: 'admin' },
   { id: 3, nama: 'Budi Santoso', email: 'petugas@gudang.com', passwordHash: 'petugas123', role: 'petugas' }
 ];
 
@@ -120,79 +109,19 @@ const INITIAL_PENGATURAN: PengaturanGudang = {
   alamatGudang: 'Kawasan Industri Pergudangan Terpadu Blok C-12'
 };
 
-const INITIAL_MASUK: TransaksiBarangMasuk[] = [
-  {
-    id: 1,
-    noDokumen: 'BM-20261010-001',
-    tanggal: '2026-10-10',
-    supplier: 'PT Asus Indonesia Tech',
-    noSuratJalan: 'SJ-ASUS/2026/10/881',
-    petugas: 'Dimas Frandika',
-    catatan: 'Pengiriman pasokan batch pertama Q4',
-    items: [
-      { barangId: 1, idBarang: 'BRG001', namaBarang: 'Laptop ASUS VivoBook 15', jumlah: 10, satuan: 'Unit' },
-      { barangId: 4, idBarang: 'BRG004', namaBarang: 'Monitor LG 24 Inch IPS 75Hz', jumlah: 5, satuan: 'Unit' }
-    ]
-  },
-  {
-    id: 2,
-    noDokumen: 'BM-20261012-002',
-    tanggal: '2026-10-12',
-    supplier: 'CV Mitra Distributor Komputer',
-    noSuratJalan: 'MDK-DO-4592',
-    petugas: 'Budi Santoso',
-    catatan: 'Kondisi barang baik & segel pabrik aman',
-    items: [
-      { barangId: 2, idBarang: 'BRG002', namaBarang: 'Mouse Wireless Logitech M331', jumlah: 50, satuan: 'Pcs' },
-      { barangId: 5, idBarang: 'BRG005', namaBarang: 'Kabel HDMI 2.0 1.5 Meter', jumlah: 40, satuan: 'Pcs' }
-    ]
-  }
-];
-
-const INITIAL_KELUAR: TransaksiBarangKeluar[] = [
-  {
-    id: 1,
-    noDokumen: 'BK-20261011-001',
-    tanggal: '2026-10-11',
-    tujuan: 'Divisi IT & Pengembangan',
-    namaPenerima: 'Rian Hidayat (Staff IT)',
-    keterangan: 'Fasilitas perlengkapan workstation karyawan baru',
-    petugas: 'Dimas Frandika',
-    kepalaBagian: 'Hendrawan Pratama, S.T., M.M.',
-    items: [
-      { barangId: 1, idBarang: 'BRG001', namaBarang: 'Laptop ASUS VivoBook 15', jumlah: 2, satuan: 'Unit', keterangan: 'Unit laptop developer' },
-      { barangId: 2, idBarang: 'BRG002', namaBarang: 'Mouse Wireless Logitech M331', jumlah: 2, satuan: 'Pcs', keterangan: 'Mouse wireless silent' },
-      { barangId: 5, idBarang: 'BRG005', namaBarang: 'Kabel HDMI 2.0 1.5 Meter', jumlah: 2, satuan: 'Pcs', keterangan: 'Kabel display monitor' }
-    ]
-  },
-  {
-    id: 2,
-    noDokumen: 'BK-20261013-002',
-    tanggal: '2026-10-13',
-    tujuan: 'Toko Cabang Jakarta Selatan',
-    namaPenerima: 'Siti Rahma (Supervisor Toko)',
-    keterangan: 'Distribusi stok etalase toko cabang',
-    petugas: 'Budi Santoso',
-    kepalaBagian: 'Hendrawan Pratama, S.T., M.M.',
-    items: [
-      { barangId: 2, idBarang: 'BRG002', namaBarang: 'Mouse Wireless Logitech M331', jumlah: 15, satuan: 'Pcs' },
-      { barangId: 6, idBarang: 'BRG006', namaBarang: 'Kertas HVS A4 80gr PaperOne', jumlah: 10, satuan: 'Rim' }
-    ]
-  }
-];
-
 export class BarangRepository {
   private getStore(): Barang[] {
     try {
       const data = localStorage.getItem(STORAGE_KEY_BARANG);
-      if (data) {
-        return JSON.parse(data);
+      if (data !== null) {
+        const parsed = JSON.parse(data);
+        return Array.isArray(parsed) ? parsed : [];
       }
     } catch (e) {
       console.warn('LocalStorage error', e);
     }
-    this.saveStore(INITIAL_BARANG);
-    return INITIAL_BARANG;
+    this.saveStore([]);
+    return [];
   }
 
   private saveStore(items: Barang[]) {
@@ -368,30 +297,15 @@ export class TransaksiMasukRepository {
   private getStore(): TransaksiBarangMasuk[] {
     try {
       const data = localStorage.getItem(STORAGE_KEY_MASUK);
-      if (data) {
+      if (data !== null) {
         const parsed = JSON.parse(data);
-        return parsed.map((item: any) => {
-          if (!item.items && item.namaBarang) {
-            return {
-              ...item,
-              items: [{
-                barangId: item.barangId,
-                idBarang: item.idBarang,
-                namaBarang: item.namaBarang,
-                jumlah: item.jumlah,
-                satuan: item.satuan,
-                keterangan: item.catatan
-              }]
-            };
-          }
-          return item;
-        });
+        return Array.isArray(parsed) ? parsed : [];
       }
     } catch (e) {
       console.warn('LocalStorage error', e);
     }
-    this.saveStore(INITIAL_MASUK);
-    return INITIAL_MASUK;
+    this.saveStore([]);
+    return [];
   }
 
   private saveStore(items: TransaksiBarangMasuk[]) {
@@ -482,31 +396,15 @@ export class TransaksiKeluarRepository {
   private getStore(): TransaksiBarangKeluar[] {
     try {
       const data = localStorage.getItem(STORAGE_KEY_KELUAR);
-      if (data) {
+      if (data !== null) {
         const parsed = JSON.parse(data);
-        return parsed.map((item: any) => {
-          if (!item.items && item.namaBarang) {
-            return {
-              ...item,
-              namaPenerima: item.namaPenerima || 'Penerima Barang',
-              items: [{
-                barangId: item.barangId,
-                idBarang: item.idBarang,
-                namaBarang: item.namaBarang,
-                jumlah: item.jumlah,
-                satuan: item.satuan,
-                keterangan: item.keterangan
-              }]
-            };
-          }
-          return item;
-        });
+        return Array.isArray(parsed) ? parsed : [];
       }
     } catch (e) {
       console.warn('LocalStorage error', e);
     }
-    this.saveStore(INITIAL_KELUAR);
-    return INITIAL_KELUAR;
+    this.saveStore([]);
+    return [];
   }
 
   private saveStore(items: TransaksiBarangKeluar[]) {

@@ -357,7 +357,7 @@ export const BarangMasukView: React.FC<BarangMasukViewProps> = ({
               )}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '2.5fr 1fr 2fr auto', gap: '12px', alignItems: 'end' }}>
+            <div className="item-builder-grid">
               <SearchableBarangPicker
                 barangList={activeBarangList}
                 selectedBarangId={selectedBarangId}
@@ -390,15 +390,17 @@ export const BarangMasukView: React.FC<BarangMasukViewProps> = ({
                 />
               </div>
 
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={handleAddItemToDraft}
-                style={{ height: '42px', padding: '0 16px', fontSize: '13px', background: '#059669' }}
-              >
-                <Plus size={16} />
-                + Tambah ke Daftar
-              </button>
+              <div className="item-builder-btn-wrapper">
+                <button
+                  type="button"
+                  className="btn btn-primary btn-add-builder"
+                  onClick={handleAddItemToDraft}
+                  style={{ background: '#059669' }}
+                >
+                  <Plus size={16} />
+                  + Tambah ke Daftar
+                </button>
+              </div>
             </div>
           </div>
 
@@ -494,15 +496,14 @@ export const BarangMasukView: React.FC<BarangMasukViewProps> = ({
             </div>
           </div>
 
-          <div style={{ position: 'relative', width: '260px' }}>
-            <Search size={15} style={{ position: 'absolute', left: '10px', top: '10px', color: '#94a3b8' }} />
+          <div className="search-input-wrapper">
+            <Search size={15} className="search-input-icon" />
             <input
               type="text"
               placeholder="Cari no. dok / supplier / barang..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="text-field"
-              style={{ paddingLeft: '32px', paddingRight: '10px', paddingTop: '6px', paddingBottom: '6px', fontSize: '13px' }}
+              className="text-field search-input-field"
             />
           </div>
         </div>

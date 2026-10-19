@@ -205,12 +205,11 @@ export const LaporanStokView: React.FC<LaporanStokViewProps> = ({
             <p className="section-desc">Pilih jenis laporan, tentukan rentang tanggal, dan sesuaikan penandatangan sebelum mencetak</p>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div className="report-action-buttons">
             <button
               type="button"
               className="btn btn-primary"
               onClick={handlePrint}
-              style={{ padding: '8px 18px', fontSize: '13px' }}
             >
               <Printer size={16} />
               Cetak / Simpan PDF
@@ -220,7 +219,6 @@ export const LaporanStokView: React.FC<LaporanStokViewProps> = ({
               type="button"
               className="btn btn-secondary"
               onClick={handleExportCSV}
-              style={{ padding: '8px 16px', fontSize: '13px' }}
             >
               <Download size={16} />
               Ekspor CSV / Excel
@@ -341,7 +339,7 @@ export const LaporanStokView: React.FC<LaporanStokViewProps> = ({
             flexDirection: 'column',
             gap: '12px'
           }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div className="form-grid">
               <div className="form-item">
                 <label>Nama Lengkap & Gelar Kepala Bagian</label>
                 <input

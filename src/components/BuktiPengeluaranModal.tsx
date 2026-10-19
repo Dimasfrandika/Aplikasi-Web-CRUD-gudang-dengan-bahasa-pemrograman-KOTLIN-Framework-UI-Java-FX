@@ -31,35 +31,13 @@ export const BuktiPengeluaranModal: React.FC<BuktiPengeluaranModalProps> = ({
   });
 
   return (
-    <div className="modal-overlay" onClick={onClose} style={{ zIndex: 100, overflowY: 'auto', padding: '20px' }}>
+    <div className="modal-overlay bukti-modal-overlay" onClick={onClose}>
       <div
         className="bukti-modal-container"
         onClick={(e) => e.stopPropagation()}
-        style={{
-          background: '#ffffff',
-          borderRadius: '14px',
-          width: '100%',
-          maxWidth: '820px',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-          margin: 'auto',
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column'
-        }}
       >
         {/* Modal Toolbar (hidden in print) */}
-        <div
-          className="no-print"
-          style={{
-            padding: '16px 24px',
-            background: 'linear-gradient(to right, #1e293b, #334155)',
-            color: '#ffffff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            borderBottom: '1px solid #475569'
-          }}
-        >
+        <div className="bukti-modal-header no-print">
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <Truck size={20} color="#60a5fa" />
             <div>

@@ -58,39 +58,33 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               (e.target as HTMLElement).style.display = 'none';
             }}
           />
-          <div>
-            <h1 className="header-title">Sistem Manajemen Data Gudang</h1>
-            <div className="header-subtitle">Warehouse Management System • Logistik & Stok Terpadu</div>
+          <div className="header-brand-text">
+            <h1 className="header-title">Sistem Gudang & Inventaris</h1>
+            <div className="header-subtitle">WMS • Manajemen Logistik & Stok Terpadu</div>
           </div>
         </div>
 
-        <div className="header-user-info" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div className="header-user-info">
           {/* Real-time Cloud SQL Sync Badge & Button */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            background: 'rgba(255, 255, 255, 0.12)',
-            padding: '5px 10px',
-            borderRadius: '6px',
-            border: '1px solid rgba(255, 255, 255, 0.2)'
-          }}>
-            <span style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '5px',
-              fontSize: '11px',
-              fontWeight: 600,
-              color: realtimeStatus === 'connected' ? '#86efac' : realtimeStatus === 'connecting' ? '#fde047' : '#fca5a5'
-            }}>
-              <span style={{
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                backgroundColor: realtimeStatus === 'connected' ? '#22c55e' : realtimeStatus === 'connecting' ? '#eab308' : '#ef4444',
-                boxShadow: realtimeStatus === 'connected' ? '0 0 8px #22c55e' : 'none'
-              }} />
-              {realtimeStatus === 'connected' ? 'Real-Time Aktif' : realtimeStatus === 'connecting' ? 'Menghubungkan...' : 'Offline'}
+          <div className="header-sync-badge">
+            <span
+              className="sync-status-indicator"
+              style={{
+                color: realtimeStatus === 'connected' ? '#86efac' : realtimeStatus === 'connecting' ? '#fde047' : '#fca5a5'
+              }}
+            >
+              <span
+                style={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  backgroundColor: realtimeStatus === 'connected' ? '#22c55e' : realtimeStatus === 'connecting' ? '#eab308' : '#ef4444',
+                  boxShadow: realtimeStatus === 'connected' ? '0 0 8px #22c55e' : 'none'
+                }}
+              />
+              <span className="sync-status-text">
+                {realtimeStatus === 'connected' ? 'Real-Time' : realtimeStatus === 'connecting' ? 'Koneksi...' : 'Offline'}
+              </span>
             </span>
 
             {onForceSync && (
@@ -99,32 +93,19 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                 onClick={onForceSync}
                 disabled={isSyncing}
                 title="Sinkronkan data sekarang dari Cloud SQL"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  background: 'rgba(255, 255, 255, 0.2)',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '4px',
-                  padding: '3px 8px',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  cursor: isSyncing ? 'not-allowed' : 'pointer',
-                  transition: 'background 0.2s'
-                }}
+                className="btn-sync-action"
               >
                 <RefreshCw size={11} className={isSyncing ? 'animate-spin' : ''} />
-                {isSyncing ? 'Sinkron...' : 'Sinkron'}
+                <span className="btn-sync-label">{isSyncing ? 'Sync...' : 'Sync'}</span>
               </button>
             )}
           </div>
 
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '13px', fontWeight: 600, color: '#ffffff' }}>
+          <div className="header-user-text">
+            <div className="header-user-name">
               {session.nama || session.email}
             </div>
-            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.85)' }}>
+            <div className="header-user-email">
               {session.email}
             </div>
           </div>
@@ -132,51 +113,37 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
           <span className={`user-badge-role ${isAdmin ? 'role-admin' : 'role-petugas'}`}>
             {isAdmin ? (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                <ShieldCheck size={12} /> Admin Gudang
+                <ShieldCheck size={12} /> <span className="role-label">Admin</span>
               </span>
             ) : (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                <UserCheck size={12} /> Petugas Gudang
+                <UserCheck size={12} /> <span className="role-label">Petugas</span>
               </span>
             )}
           </span>
 
           <button
             type="button"
-            className="btn btn-outline"
+            className="btn btn-outline btn-logout"
             onClick={onLogout}
-            style={{
-              padding: '6px 14px',
-              fontSize: '12px',
-              borderColor: 'rgba(255,255,255,0.6)',
-              color: '#ffffff',
-              backgroundColor: 'rgba(239, 68, 68, 0.25)'
-            }}
             title="Keluar dari sesi akun"
           >
             <LogOut size={14} />
-            Keluar
+            <span className="btn-logout-text">Keluar</span>
           </button>
         </div>
       </header>
 
-      {/* ================= NAVIGATION TABS ================= */}
-      <nav className="nav-tabs-bar no-print">
+      {/* ================= NAVIGATION TABS (TABLET & DESKTOP) ================= */}
+      <nav className="nav-tabs-bar desktop-nav no-print">
         <button
           type="button"
           className={`nav-tab-btn ${activeTab === 'master_barang' ? 'active' : ''}`}
           onClick={() => setActiveTab('master_barang')}
         >
           <Package size={17} color="#2563eb" />
-          1. Data Master Barang
-          <span style={{
-            background: activeTab === 'master_barang' ? '#2563eb' : '#e2e8f0',
-            color: activeTab === 'master_barang' ? '#ffffff' : '#475569',
-            fontSize: '11px',
-            padding: '2px 6px',
-            borderRadius: '999px',
-            fontWeight: 700
-          }}>
+          <span>1. Data Master Barang</span>
+          <span className="nav-tab-badge">
             {barangList.length}
           </span>
         </button>
@@ -187,14 +154,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
           onClick={() => setActiveTab('barang_masuk')}
         >
           <ArrowDownToLine size={17} color="#059669" />
-          2. Transaksi Barang Masuk
-          <span style={{
+          <span>2. Transaksi Barang Masuk</span>
+          <span className="nav-tab-badge" style={{
             background: activeTab === 'barang_masuk' ? '#059669' : '#e2e8f0',
-            color: activeTab === 'barang_masuk' ? '#ffffff' : '#475569',
-            fontSize: '11px',
-            padding: '2px 6px',
-            borderRadius: '999px',
-            fontWeight: 700
+            color: activeTab === 'barang_masuk' ? '#ffffff' : '#475569'
           }}>
             {transaksiMasuk.length}
           </span>
@@ -206,14 +169,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
           onClick={() => setActiveTab('barang_keluar')}
         >
           <ArrowUpFromLine size={17} color="#dc2626" />
-          3. Transaksi Barang Keluar
-          <span style={{
+          <span>3. Transaksi Barang Keluar</span>
+          <span className="nav-tab-badge" style={{
             background: activeTab === 'barang_keluar' ? '#dc2626' : '#e2e8f0',
-            color: activeTab === 'barang_keluar' ? '#ffffff' : '#475569',
-            fontSize: '11px',
-            padding: '2px 6px',
-            borderRadius: '999px',
-            fontWeight: 700
+            color: activeTab === 'barang_keluar' ? '#ffffff' : '#475569'
           }}>
             {transaksiKeluar.length}
           </span>
@@ -225,7 +184,57 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
           onClick={() => setActiveTab('laporan')}
         >
           <FileText size={17} color="#6d28d9" />
-          4. Cetak Laporan Stok & Mutasi
+          <span>4. Cetak Laporan Stok & Mutasi</span>
+        </button>
+      </nav>
+
+      {/* ================= MOBILE BOTTOM NAVIGATION (SMARTPHONES) ================= */}
+      <nav className="mobile-bottom-nav no-print" aria-label="Navigasi Bawah Mobile">
+        <button
+          type="button"
+          className={`mobile-nav-item ${activeTab === 'master_barang' ? 'active' : ''}`}
+          onClick={() => setActiveTab('master_barang')}
+        >
+          <div className="mobile-nav-icon-wrapper">
+            <Package size={20} />
+            <span className="mobile-nav-badge">{barangList.length}</span>
+          </div>
+          <span className="mobile-nav-label">Master</span>
+        </button>
+
+        <button
+          type="button"
+          className={`mobile-nav-item ${activeTab === 'barang_masuk' ? 'active' : ''}`}
+          onClick={() => setActiveTab('barang_masuk')}
+        >
+          <div className="mobile-nav-icon-wrapper">
+            <ArrowDownToLine size={20} />
+            <span className="mobile-nav-badge" style={{ background: '#059669' }}>{transaksiMasuk.length}</span>
+          </div>
+          <span className="mobile-nav-label">Masuk</span>
+        </button>
+
+        <button
+          type="button"
+          className={`mobile-nav-item ${activeTab === 'barang_keluar' ? 'active' : ''}`}
+          onClick={() => setActiveTab('barang_keluar')}
+        >
+          <div className="mobile-nav-icon-wrapper">
+            <ArrowUpFromLine size={20} />
+            <span className="mobile-nav-badge" style={{ background: '#dc2626' }}>{transaksiKeluar.length}</span>
+          </div>
+          <span className="mobile-nav-label">Keluar</span>
+        </button>
+
+        <button
+          type="button"
+          className={`mobile-nav-item ${activeTab === 'laporan' ? 'active' : ''}`}
+          onClick={() => setActiveTab('laporan')}
+        >
+          <div className="mobile-nav-icon-wrapper">
+            <FileText size={20} />
+          </div>
+          <span className="mobile-nav-label">Laporan</span>
         </button>
       </nav>
 

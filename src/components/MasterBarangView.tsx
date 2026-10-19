@@ -346,15 +346,14 @@ export const MasterBarangView: React.FC<MasterBarangViewProps> = ({
             <p className="section-desc">Daftar lengkap inventaris barang, kategori, limit stok minimum, dan ketersediaan fisik</p>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          <div className="table-filter-bar">
             {/* Category Filter */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div className="filter-select-wrapper">
               <Filter size={15} color="#64748b" />
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="select-field"
-                style={{ width: '160px', padding: '6px 10px', fontSize: '13px' }}
+                className="select-field filter-select"
               >
                 {categories.map(cat => (
                   <option key={cat} value={cat}>{cat}</option>
@@ -363,15 +362,14 @@ export const MasterBarangView: React.FC<MasterBarangViewProps> = ({
             </div>
 
             {/* Keyword Search */}
-            <div style={{ position: 'relative', width: '220px' }}>
-              <Search size={15} style={{ position: 'absolute', left: '10px', top: '10px', color: '#94a3b8' }} />
+            <div className="search-input-wrapper">
+              <Search size={15} className="search-input-icon" />
               <input
                 type="text"
                 placeholder="Cari nama / kode..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="text-field"
-                style={{ paddingLeft: '32px', paddingRight: '10px', paddingTop: '6px', paddingBottom: '6px', fontSize: '13px' }}
+                className="text-field search-input-field"
               />
             </div>
           </div>
