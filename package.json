@@ -8,7 +8,8 @@
     "build": "tsc && vite build",
     "start": "tsx server.ts",
     "preview": "vite preview --port 3000 --host 0.0.0.0",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "test": "jest"
   },
   "dependencies": {
     "dotenv": "^18.0.8",
@@ -26,12 +27,14 @@
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
+    "@types/jest": "^30.0.0",
     "@types/pg": "^8.23.1",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@types/ws": "^8.18.2",
     "@vitejs/plugin-react": "^4.3.4",
     "drizzle-kit": "^0.31.11",
+    "jest": "^30.5.2",
     "tsx": "^4.23.15",
     "typescript": "^5.7.2",
     "vite": "^6.1.0"
