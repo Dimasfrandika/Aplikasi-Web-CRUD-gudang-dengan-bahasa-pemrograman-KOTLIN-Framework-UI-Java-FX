@@ -12,9 +12,11 @@ import {
   LogOut,
   ShieldCheck,
   UserCheck,
-  RefreshCw
+  RefreshCw,
+  Play
 } from 'lucide-react';
 import { RealtimeStatus } from '../services/realtime';
+import { TestRunnerModal } from './TestRunnerModal';
 
 interface MainLayoutProps {
   session: UserSession;
@@ -42,6 +44,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   onLogout
 }) => {
   const [activeTab, setActiveTab] = useState<MainTab>('master_barang');
+  const [isTestModalOpen, setIsTestModalOpen] = useState(false);
 
   const isAdmin = session.role === 'admin';
 
@@ -100,6 +103,17 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               </button>
             )}
           </div>
+
+          {/* Tombol Running Uji Validasi Stok (Kotlin & Jest) */}
+          <button
+            type="button"
+            onClick={() => setIsTestModalOpen(true)}
+            title="Buka panel Unit Testing & Runner Kotlin / Jest"
+            className="btn-test-runner"
+          >
+            <Play size={13} fill="#4ade80" color="#4ade80" />
+            <span className="btn-test-runner-text">Uji Validasi Stok</span>
+          </button>
 
           <div className="header-user-text">
             <div className="header-user-name">
@@ -280,6 +294,12 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
       <footer className="footer no-print">
         <p>© 2026 Powered by Dimas Frandika • Sistem Manajemen Pergudangan & Logistik</p>
       </footer>
+
+      {/* ================= TEST RUNNER & KOTLIN LAUNCHER MODAL ================= */}
+      <TestRunnerModal
+        isOpen={isTestModalOpen}
+        onClose={() => setIsTestModalOpen(false)}
+      />
     </div>
   );
 };

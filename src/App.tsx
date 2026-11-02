@@ -71,6 +71,9 @@ export function App() {
     if (currentSession.userId) {
       setSession(currentSession);
       setCurrentScene('main');
+      if (typeof window !== 'undefined' && window.location.pathname !== '/dashboard') {
+        window.history.replaceState({}, '', '/dashboard');
+      }
       reloadData();
     } else {
       setCurrentScene('login');
@@ -97,6 +100,9 @@ export function App() {
     const freshSession = SessionService.getSession();
     setSession(freshSession);
     setCurrentScene('main');
+    if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', '/dashboard');
+    }
     reloadData();
   };
 
@@ -104,6 +110,9 @@ export function App() {
     SessionService.clear();
     setSession({ userId: null, nama: null, email: null, role: null });
     setCurrentScene('login');
+    if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', '/');
+    }
   };
 
   return (

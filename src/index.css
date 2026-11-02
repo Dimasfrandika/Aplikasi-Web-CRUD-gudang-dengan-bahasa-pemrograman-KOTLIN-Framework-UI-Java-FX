@@ -270,6 +270,37 @@ body {
   background: rgba(255, 255, 255, 0.32);
 }
 
+.btn-test-runner {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(52, 211, 153, 0.5);
+  color: #ffffff;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.btn-test-runner:hover {
+  background: rgba(16, 185, 129, 0.35);
+  border-color: #34d399;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 640px) {
+  .btn-test-runner-text {
+    display: none;
+  }
+  .btn-test-runner {
+    padding: 6px;
+  }
+}
+
 .header-user-text {
   text-align: right;
 }
