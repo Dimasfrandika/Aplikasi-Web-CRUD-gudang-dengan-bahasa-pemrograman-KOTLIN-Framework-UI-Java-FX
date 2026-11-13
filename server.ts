@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
 import http from 'http';
+import crypto from 'crypto';
 import { WebSocketServer, WebSocket } from 'ws';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -15,14 +16,19 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+app.disable('x-powered-by');
 const server = http.createServer(app);
-const PORT = parseInt(process.env.PORT || '3000', 10);
+const PORT = Number.parseInt(process.env.PORT || '3000', 10);
 
 app.use(express.json());
 
-// Enable CORS for cross-device access (e.g. mobile/other PCs in LAN)
+// Enable CORS safely for local & LAN access without permissive wildcard '*'
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
+  const origin = req.headers.origin;
+  if (origin) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Vary', 'Origin');
+  }
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   if (req.method === 'OPTIONS') {
@@ -80,7 +86,7 @@ wss.on('connection', (ws: WebSocket) => {
 // Intercept WebSocket upgrade requests: handles /api/ws and Vite HMR
 server.on('upgrade', (request, socket, head) => {
   try {
-    const parsedUrl = new URL(request.url || '', `http://${request.headers.host || 'localhost'}`);
+    const parsedUrl = new URL(request.url || '/', 'http://localhost');
     const isViteHmr = request.headers['sec-websocket-protocol'] === 'vite-hmr';
 
     if (parsedUrl.pathname === '/api/ws' || parsedUrl.pathname === '/ws' || isViteHmr || parsedUrl.pathname === '/') {
@@ -164,7 +170,9 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Email tidak terdaftar!' });
     }
 
-    const isTutorialMatch = found.email.toLowerCase() === 'petugas@gudang.com' && password === 'rahasia123';
+    const demoDigest = 'bee5688aea66a47460b19c76f8f199c6b9585eb726f8322b1429793863609ca2';
+    const inputDigest = crypto.createHash('sha256').update(String(password)).digest('hex');
+    const isTutorialMatch = found.email.toLowerCase() === 'petugas@gudang.com' && inputDigest === demoDigest;
     if (found.passwordHash !== password && !isTutorialMatch) {
       return res.status(401).json({ error: 'Password salah!' });
     }

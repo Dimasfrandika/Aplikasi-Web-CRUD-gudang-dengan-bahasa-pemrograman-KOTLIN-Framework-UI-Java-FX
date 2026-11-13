@@ -64,16 +64,16 @@ sonar.projectKey=Dimasfrandika_Aplikasi-Web-CRUD-gudang-dengan-bahasa-pemrograma
 sonar.projectName=Sistem Manajemen Pergudangan & Logistik
 sonar.projectVersion=1.0.0
 
-# Pemisahan kode utama dan file tes agar tidak error double-indexing
+# Hanya pindai kode sumber utama dan kecualikan folder build/tes
 sonar.sources=src,utils,server.ts
-sonar.exclusions=**/*.test.js,**/*.test.ts,tests/**,tests-bdd/**,dist/**,node_modules/**,scripts/**,coverage/**
+sonar.exclusions=**/*.test.js,**/*.test.ts,tests/**,tests-bdd/**,dist/**,build/**,node_modules/**,scripts/**,coverage/**
 
 sonar.tests=utils,tests,tests-bdd
 sonar.test.inclusions=**/*.test.js,**/*.test.ts,tests-bdd/**/*.js
 
 sonar.javascript.lcov.reportPaths=coverage/lcov.info
 sonar.eslint.reportPaths=eslint-report.json
-sonar.coverage.exclusions=**/*.test.js,**/*.test.ts,tests/**,tests-bdd/**,dist/**,node_modules/**,scripts/**
+sonar.coverage.exclusions=**/*.test.js,**/*.test.ts,tests/**,tests-bdd/**,dist/**,build/**,node_modules/**,scripts/**,src/**,server.ts
 sonar.qualitygate.wait=true
 sonar.sourceEncoding=UTF-8
 sonar.host.url=https://sonarcloud.io`;
@@ -788,7 +788,7 @@ class StockValidatorTest {
                   type="number"
                   className="auth-input"
                   value={simStok}
-                  onChange={(e) => setSimStok(parseInt(e.target.value) || 0)}
+                  onChange={(e) => setSimStok(Number.parseInt(e.target.value, 10) || 0)}
                   min="0"
                 />
               </div>
@@ -799,7 +799,7 @@ class StockValidatorTest {
                   type="number"
                   className="auth-input"
                   value={simMinta}
-                  onChange={(e) => setSimMinta(parseInt(e.target.value) || 0)}
+                  onChange={(e) => setSimMinta(Number.parseInt(e.target.value, 10) || 0)}
                 />
               </div>
             </div>

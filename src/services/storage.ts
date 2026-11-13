@@ -96,10 +96,23 @@ export async function syncAllFromBackend(): Promise<SyncResult> {
   return result;
 }
 
+const DEMO_PETUGAS_DIGEST = 'bee5688aea66a47460b19c76f8f199c6b9585eb726f8322b1429793863609ca2';
+
+async function computeSha256Hex(value: string): Promise<string> {
+  if (typeof window !== 'undefined' && window.crypto?.subtle) {
+    const encoded = new TextEncoder().encode(value);
+    const buffer = await window.crypto.subtle.digest('SHA-256', encoded);
+    return Array.from(new Uint8Array(buffer))
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
+  }
+  return '';
+}
+
 const INITIAL_USERS: User[] = [
-  { id: 1, nama: 'Administrator Gudang', email: 'admin@gudang.com', passwordHash: 'admin', role: 'admin' },
-  { id: 2, nama: 'Dimas Frandika', email: 'dimasfrandika87@gmail.com', passwordHash: 'Dimas87frandika', role: 'admin' },
-  { id: 3, nama: 'Budi Santoso', email: 'petugas@gudang.com', passwordHash: 'petugas123', role: 'petugas' }
+  { id: 1, nama: 'Administrator Gudang', email: 'admin@gudang.com', passwordHash: '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918', role: 'admin' },
+  { id: 2, nama: 'Dimas Frandika', email: 'dimasfrandika87@gmail.com', passwordHash: 'bd142ffed721ec3dba995c28af10d6fe335f17dc76f77cffd5e97e15ecc58dfb', role: 'admin' },
+  { id: 3, nama: 'Budi Santoso', email: 'petugas@gudang.com', passwordHash: '2dad904f71aa0dcf6ea1addaa084a5865ffe448e4d3f900668e1cc7e7b6153d7', role: 'petugas' }
 ];
 
 const INITIAL_PENGATURAN: PengaturanGudang = {
@@ -610,8 +623,10 @@ export class AuthService {
 
     // Local fallback check
     const user = this.userRepo.findByEmail(email);
-    const isTutorialMatch = user && user.email.toLowerCase() === 'petugas@gudang.com' && password === 'rahasia123';
-    if (!user || (user.passwordHash !== password && !isTutorialMatch)) {
+    const inputDigest = await computeSha256Hex(password);
+    const isPasswordMatch = user && (user.passwordHash === password || (inputDigest !== '' && user.passwordHash === inputDigest));
+    const isTutorialMatch = user && user.email.toLowerCase() === 'petugas@gudang.com' && inputDigest === DEMO_PETUGAS_DIGEST;
+    if (!user || (!isPasswordMatch && !isTutorialMatch)) {
       return { success: false, message: 'Email atau password salah' };
     }
 

@@ -77,7 +77,9 @@ export function App() {
       reloadData();
     } else {
       setCurrentScene('login');
-      syncAllFromBackend().catch(() => {});
+      syncAllFromBackend().catch((err) => {
+        console.warn('Initial background sync skipped:', err);
+      });
     }
 
     // 2. Real-time WebSocket connection status listener

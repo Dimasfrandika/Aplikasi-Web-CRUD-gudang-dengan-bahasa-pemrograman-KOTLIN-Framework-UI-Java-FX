@@ -121,7 +121,7 @@ if (process.env.RUN_SONAR_SCANNER === 'true') {
       'sonar.projectKey': sonarProjectKey,
       'sonar.projectName': sonarProps['sonar.projectName'] || 'Sistem Manajemen Pergudangan & Logistik',
       'sonar.sources': sonarProps['sonar.sources'] || 'src,utils,server.ts',
-      'sonar.exclusions': sonarProps['sonar.exclusions'] || '**/*.test.js,**/*.test.ts,tests/**,tests-bdd/**,dist/**,node_modules/**,scripts/**,coverage/**',
+      'sonar.exclusions': sonarProps['sonar.exclusions'] || '**/*.test.js,**/*.test.ts,tests/**,tests-bdd/**,dist/**,build/**,node_modules/**,scripts/**,coverage/**',
       'sonar.tests': sonarProps['sonar.tests'] || 'utils,tests,tests-bdd',
       'sonar.test.inclusions': sonarProps['sonar.test.inclusions'] || '**/*.test.js,**/*.test.ts,tests-bdd/**/*.js',
       'sonar.javascript.lcov.reportPaths': 'coverage/lcov.info',
