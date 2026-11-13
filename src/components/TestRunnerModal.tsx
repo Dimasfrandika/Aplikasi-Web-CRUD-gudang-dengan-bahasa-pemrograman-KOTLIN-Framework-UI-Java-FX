@@ -96,7 +96,7 @@ jobs:
         with: { fetch-depth: 0 }
       - uses: actions/setup-node@v4
         with: { node-version: 20 }
-      - run: npm ci
+      - run: npm install
       - run: npm run lint && npx eslint . -f json -o eslint-report.json
       - run: npm run test:unit
       - uses: SonarSource/sonarqube-scan-action@v4
