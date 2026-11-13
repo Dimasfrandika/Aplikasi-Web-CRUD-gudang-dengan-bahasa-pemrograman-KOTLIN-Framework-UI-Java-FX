@@ -39,6 +39,8 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
+            -Dsonar.organization=dimasfrandika
+            -Dsonar.projectKey=Dimasfrandika_Aplikasi-Web-CRUD-gudang-dengan-bahasa-pemrograman-KOTLIN-Framework-UI-Java-FX
             -Dsonar.host.url=https://sonarcloud.io
             -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
             -Dsonar.eslint.reportPaths=eslint-report.json

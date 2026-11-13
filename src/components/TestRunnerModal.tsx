@@ -59,16 +59,21 @@ Feature: Fitur Login Sistem Gudang
     Then Sistem harus mengarahkan pengguna ke halaman Dashboard`;
 
   const sonarPropertiesCode = `# File: sonar-project.properties
-sonar.organization=ISI_ORGANIZATION_KEY_ANDA
-sonar.projectKey=ISI_PROJECT_KEY_DARI_SONARCLOUD
+sonar.organization=dimasfrandika
+sonar.projectKey=Dimasfrandika_Aplikasi-Web-CRUD-gudang-dengan-bahasa-pemrograman-KOTLIN-Framework-UI-Java-FX
 sonar.projectName=Sistem Manajemen Pergudangan & Logistik
 sonar.projectVersion=1.0.0
+
+# Pemisahan kode utama dan file tes agar tidak error double-indexing
 sonar.sources=src,utils,server.ts
+sonar.exclusions=**/*.test.js,**/*.test.ts,tests/**,tests-bdd/**,dist/**,node_modules/**,scripts/**,coverage/**
+
 sonar.tests=utils,tests,tests-bdd
 sonar.test.inclusions=**/*.test.js,**/*.test.ts,tests-bdd/**/*.js
+
 sonar.javascript.lcov.reportPaths=coverage/lcov.info
-sonar.coverage.exclusions=**/*.test.js,**/*.test.ts,tests-bdd/**,dist/**,node_modules/**,scripts/**
 sonar.eslint.reportPaths=eslint-report.json
+sonar.coverage.exclusions=**/*.test.js,**/*.test.ts,tests/**,tests-bdd/**,dist/**,node_modules/**,scripts/**
 sonar.qualitygate.wait=true
 sonar.sourceEncoding=UTF-8
 sonar.host.url=https://sonarcloud.io`;
@@ -99,6 +104,8 @@ jobs:
           SONAR_TOKEN: \${{ secrets.SONAR_TOKEN }}
         with:
           args: >
+            -Dsonar.organization=dimasfrandika
+            -Dsonar.projectKey=Dimasfrandika_Aplikasi-Web-CRUD-gudang-dengan-bahasa-pemrograman-KOTLIN-Framework-UI-Java-FX
             -Dsonar.host.url=https://sonarcloud.io
             -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
             -Dsonar.eslint.reportPaths=eslint-report.json`;
