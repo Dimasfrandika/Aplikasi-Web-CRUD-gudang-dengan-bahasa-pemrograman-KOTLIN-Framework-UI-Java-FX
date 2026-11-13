@@ -59,7 +59,8 @@ Feature: Fitur Login Sistem Gudang
     Then Sistem harus mengarahkan pengguna ke halaman Dashboard`;
 
   const sonarPropertiesCode = `# File: sonar-project.properties
-sonar.projectKey=gudang-management-system
+sonar.organization=ISI_ORGANIZATION_KEY_ANDA
+sonar.projectKey=ISI_PROJECT_KEY_DARI_SONARCLOUD
 sonar.projectName=Sistem Manajemen Pergudangan & Logistik
 sonar.projectVersion=1.0.0
 sonar.sources=src,utils,server.ts
@@ -67,11 +68,13 @@ sonar.tests=utils,tests,tests-bdd
 sonar.test.inclusions=**/*.test.js,**/*.test.ts,tests-bdd/**/*.js
 sonar.javascript.lcov.reportPaths=coverage/lcov.info
 sonar.coverage.exclusions=**/*.test.js,**/*.test.ts,tests-bdd/**,dist/**,node_modules/**,scripts/**
+sonar.eslint.reportPaths=eslint-report.json
+sonar.qualitygate.wait=true
 sonar.sourceEncoding=UTF-8
-sonar.host.url=http://localhost:9000`;
+sonar.host.url=https://sonarcloud.io`;
 
   const githubWorkflowCode = `# File: .github/workflows/sonar.yml
-name: SonarQube Code Quality Analysis
+name: SonarCloud Code Quality Analysis
 
 on:
   push:
@@ -80,8 +83,8 @@ on:
     branches: [ main, master ]
 
 jobs:
-  sonarqube:
-    name: SonarQube Quality Gate
+  sonarcloud:
+    name: SonarCloud Quality Gate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -89,16 +92,16 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 20 }
       - run: npm ci
-      - run: npm run lint
-      - run: npm test -- --coverage
-      - uses: sonarsource/sonarqube-scan-action@master
+      - run: npm run lint && npx eslint . -f json -o eslint-report.json
+      - run: npm run test:unit
+      - uses: SonarSource/sonarqube-scan-action@v4
         env:
           SONAR_TOKEN: \${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: \${{ secrets.SONAR_HOST_URL }}
-      - uses: sonarsource/sonarqube-quality-gate-action@master
-        timeout-minutes: 5
-        env:
-          SONAR_TOKEN: \${{ secrets.SONAR_TOKEN }}`;
+        with:
+          args: >
+            -Dsonar.host.url=https://sonarcloud.io
+            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+            -Dsonar.eslint.reportPaths=eslint-report.json`;
 
   const copyBddCode = () => {
     navigator.clipboard.writeText(bddFeatureCode);
@@ -617,8 +620,8 @@ class StockValidatorTest {
               </pre>
             </div>
 
-            <div style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '10px 12px', fontSize: '12px', color: '#334155' }}>
-              💡 <strong>Perintah Audit di Terminal:</strong> <code>npm run sonar</code> untuk audit Quality Gate atau klik ganda <code>run-sonar.bat</code> (Windows) / <code>./run-sonar.sh</code> (Mac/Linux).
+            <div style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '10px 12px', fontSize: '12px', color: '#334155', lineHeight: 1.5 }}>
+              💡 <strong>Perintah Terminal:</strong> <code>npm run lint:report</code> untuk membuat <code>eslint-report.json</code>, <code>npm run test:unit</code> untuk LCOV coverage, lalu <code>npm run sonar</code> (atau Docker SonarCloud Scanner).
             </div>
           </div>
         )}

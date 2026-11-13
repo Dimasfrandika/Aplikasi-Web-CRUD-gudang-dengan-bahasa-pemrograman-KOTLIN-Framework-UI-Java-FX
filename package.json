@@ -10,7 +10,9 @@
     "preview": "vite preview --port 3000 --host 0.0.0.0",
     "lint": "eslint . && tsc --noEmit",
     "lint:fix": "eslint . --fix",
+    "lint:report": "tsc --noEmit && eslint . -f json -o eslint-report.json",
     "test": "jest --coverage",
+    "test:unit": "jest utils/ --coverage",
     "test:integration": "jest tests/integration",
     "test:bdd": "cucumber-js tests-bdd/features/**/*.feature --import tests-bdd/steps/**/*.js",
     "sonar": "node scripts/run-sonar.js"

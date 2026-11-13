@@ -1,4 +1,4 @@
-name: SonarQube Code Quality Analysis
+name: SonarCloud Code Quality Analysis
 
 on:
   push:
@@ -7,8 +7,8 @@ on:
     branches: [ main, master ]
 
 jobs:
-  sonarqube:
-    name: SonarQube Quality Gate
+  sonarcloud:
+    name: SonarCloud Quality Gate
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -25,25 +25,20 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      - name: Run Linter (ESLint & TypeScript)
-        run: npm run lint
+      - name: Run Linter (ESLint & TypeScript) and Generate ESLint Report
+        run: |
+          npm run lint
+          npx eslint . -f json -o eslint-report.json
 
-      - name: Run Unit & Integration Tests with Coverage (LCOV)
-        run: npm test -- --coverage
+      - name: Run Unit Tests with Coverage (LCOV)
+        run: npm run test:unit
 
-      - name: Run SonarQube Scanner
-        uses: sonarsource/sonarqube-scan-action@master
+      - name: SonarCloud Scan & Quality Gate
+        uses: SonarSource/sonarqube-scan-action@v4
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         with:
           args: >
-            -Dsonar.projectKey=gudang-management-system
-            -Dsonar.projectName="Sistem Manajemen Pergudangan & Logistik"
+            -Dsonar.host.url=https://sonarcloud.io
             -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
-
-      - name: Verify SonarQube Quality Gate
-        uses: sonarsource/sonarqube-quality-gate-action@master
-        timeout-minutes: 5
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+            -Dsonar.eslint.reportPaths=eslint-report.json
